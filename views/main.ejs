@@ -1,0 +1,25 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    $(document).ready(()=>{
+        $('#temp').submit((event)=>{
+            event.preventDefault()
+            var test = $('#message').val()
+            $.post('/temperature', {
+                text: test,
+            }, (data)=>{
+                $('#result').html(data)
+            })
+        })
+    })
+</script>
+<html>
+<body>
+Temperature
+<br>
+<form id="temp">
+    Message: <input type="text" id="message"><br>
+    <input type="submit">
+</form>
+<span id="result"></span>
+</body>
+</html>
