@@ -10,7 +10,7 @@
                 $('#result').html(data)
             })
         })
-    })
+    })  
 </script>
 <html>
 <body>
@@ -21,5 +21,17 @@ Temperature
     <input type="submit">
 </form>
 <span id="result"></span>
+
+<p>Media Upload</p>
+ <form action="/upload"  enctype="multipart/form-data" method="POST">
+    <input type="file" name="files" multiple>
+    <input type="submit" value="Upload your files"/>
+ </form>
+
+<p>Retrieve File</p>
+<form action="/retrieve"  enctype="multipart/form-data" method="GET">
+    <input type="text" name="filename">
+    <input type="submit" value="Get File"/>
+ </form>
 </body>
 </html>
