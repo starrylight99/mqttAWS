@@ -7,7 +7,16 @@
             $.post('/mqtt/temperature', {
                 text: test,
             }, (data)=>{
-                $('#result').html(data)
+                $('#tempResult').html(data)
+            })
+        })
+        $('#retrieve').submit((event)=>{
+            event.preventDefault()
+            var filename = $('#filename').val()
+            $.post('/files/retrieve', {
+                filename: filename,
+            }, (data)=>{
+                $('#retrieveResult').html(data)
             })
         })
     })  
@@ -20,7 +29,7 @@ Temperature
     Message: <input type="text" id="message"><br>
     <input type="submit">
 </form>
-<span id="result"></span>
+<span id="tempResult"></span>
 
 <p>Media Upload</p>
  <form action="/files/upload"  enctype="multipart/form-data" method="POST">
@@ -29,9 +38,10 @@ Temperature
  </form>
 
 <p>Retrieve File</p>
-<form action="/files/retrieve"  enctype="multipart/form-data" method="GET">
-    <input type="text" name="filename">
+<form id="retrieve">
+    <input type="text" id="filename">
     <input type="submit" value="Get File"/>
- </form>
+</form>
+<span id="retrieveResult"></span>
 </body>
 </html>

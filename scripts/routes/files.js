@@ -11,6 +11,7 @@ router.route('/upload')
             return next(error)
         }  
         console.log(files)
+        console.log(req.body)
         for (let i = 0; i < files.length; i++){
             uploadFile(files[i])
         }
@@ -18,10 +19,11 @@ router.route('/upload')
     })
 
 router.route('/retrieve')
-    .get((req, res, next) => {
-        var filename = req.url.split('=')[1]
+    .post((req, res, next) => {
+        console.log(req.body)
+        var filename = req.body.filename
         getFile(filename)
-        res.render('main')
+        res.send("file req sent")
     })
 
 module.exports = router
