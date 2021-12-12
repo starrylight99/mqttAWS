@@ -7,6 +7,11 @@ var AWS = require('aws-sdk')
 var fs = require('fs')
 const { get } = require('https')
 const upload = multer({ dest: "uploads/" })
+const bcrypt = require('bcrypt')
+const passport = require('passport')
+const flash = require('express-flash')
+const session = require('express-session')
+const methodOverride = require('method-override')
 const expressLayouts = require('express-ejs-layouts')
 
 module.exports = {
@@ -19,4 +24,9 @@ module.exports = {
     get: get,
     fs: fs,
     expressLayouts: expressLayouts,
+    bcrypt: bcrypt,
+    passport: passport,
+    flash: flash,
+    session: session,
+    methodOverride: methodOverride,
 }

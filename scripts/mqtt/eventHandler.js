@@ -14,6 +14,9 @@ client.on('message', function (topic, message) {
     //client.end()
 })
 
+function getTemp(){
+    return temperature
+}
 module.exports = {
-    temperature: temperature
+    getTemp: getTemp
 }

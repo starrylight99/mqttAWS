@@ -1,10 +1,11 @@
 const { express } = require('../dependancies/modules')
-var { temperature } = require('../mqtt/eventHandler')
+var { getTemp } = require('../mqtt/eventHandler')
 var { client } = require('../mqtt/config')
+const { checkAuthenticated } = require('../account/permissions')
 var router = express.Router()
 
 router.route('/temperature')
-    .post(async(req, res) => {
+    .post(checkAuthenticated, async(req, res) => {
         console.log(req.body)
 
         client.subscribe('temperature', (err)=> {
@@ -17,8 +18,8 @@ router.route('/temperature')
             }
         })
         await new Promise(resolve => setTimeout(resolve, 500))
-        res.send(temperature)
-        temperature = undefined
+        var message = getTemp()
+        res.send(message)
     })
 
 

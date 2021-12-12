@@ -1,9 +1,10 @@
 const { express, upload } = require('../dependancies/modules')
 const { getFile, uploadFile } = require('../s3/functions')
+const { checkAuthenticated } = require('../account/permissions')
 var router = express.Router()
 
 router.route('/upload')
-    .post(upload.array('files', 12), (req, res, next) => {
+    .post(checkAuthenticated, upload.array('files', 12), (req, res, next) => {
         const files = req.files
         if (!files) {
             const error = new Error('Please choose files')
@@ -15,11 +16,13 @@ router.route('/upload')
         for (let i = 0; i < files.length; i++){
             uploadFile(files[i])
         }
-        res.render('main')
+        res.render('main', {
+            authenticated: req.isAuthenticated(),
+        })
     })
 
 router.route('/retrieve')
-    .post((req, res, next) => {
+    .post(checkAuthenticated, (req, res, next) => {
         console.log(req.body)
         var filename = req.body.filename
         getFile(filename)
