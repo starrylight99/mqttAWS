@@ -1,32 +1,53 @@
 const { express, upload } = require('../dependancies/modules')
-const { getFile, uploadFile } = require('../s3/functions')
+const { fs } = require('../dependancies/modules')
+const { getPlaylist, uploadFile } = require('../s3/functions')
 const { checkAuthenticated } = require('../account/permissions')
 var router = express.Router()
 
+// router.route('/upload')
+//     .post(checkAuthenticated, upload.array('files', 12), (req, res, next) => {
+//         const files = req.files
+//         if (!files) {
+//             const error = new Error('Please choose files')
+//             error.httpStatusCode = 400
+//             return next(error)
+//         }  
+//         console.log(files)
+//         console.log(req.body)
+//         for (let i = 0; i < files.length; i++){
+//             //uploadFile(files[i])
+//         }
+//         res.render('main', {
+//             authenticated: req.isAuthenticated(),
+//         })
+//     })
+
 router.route('/upload')
-    .post(checkAuthenticated, upload.array('files', 12), (req, res, next) => {
+    .post(checkAuthenticated, upload.array('file'), async(req, res) => {
         const files = req.files
+        console.log(files)
         if (!files) {
             const error = new Error('Please choose files')
             error.httpStatusCode = 400
             return next(error)
-        }  
-        console.log(files)
-        console.log(req.body)
-        for (let i = 0; i < files.length; i++){
-            uploadFile(files[i])
         }
-        res.render('main', {
+
+        for (let i = 0; i < files.length; i++){
+            uploadFile(files[i], req.body.playlistName, i, req.user.id)
+        }
+        res.render('upload', {
             authenticated: req.isAuthenticated(),
+            previousPage: "test"
         })
     })
 
+    
 router.route('/retrieve')
-    .post(checkAuthenticated, (req, res, next) => {
+    .post(checkAuthenticated, async(req, res, next) => {
         console.log(req.body)
-        var filename = req.body.filename
-        getFile(filename)
-        res.send("file req sent")
+        var playlist = req.body.filename
+        getPlaylist(playlist, req.user.id)
     })
+    
 
 module.exports = router

@@ -6,7 +6,14 @@ const multer = require('multer')
 var AWS = require('aws-sdk')
 var fs = require('fs')
 const { get } = require('https')
-const upload = multer({ dest: "uploads/" })
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image') || file.mimetype.startsWith('video')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Not a media file! Please upload images/videos only.', 400), false);
+  }
+};
+const upload = multer({ dest: "uploads/", fileFilter: multerFilter })
 const bcrypt = require('bcrypt')
 const passport = require('passport')
 const flash = require('express-flash')

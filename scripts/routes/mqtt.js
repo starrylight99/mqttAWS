@@ -10,8 +10,8 @@ router.route('/temperature')
 
         client.subscribe('temperature', (err)=> {
             if (!err) {
-                client.publish('temperature', req.body.text)
-                console.log('sent msg "' + req.body.text + '"')
+                client.publish('temperature', req.body.text + ' ' + req.user.id)
+                console.log('sent msg "' + req.body.text + ' ' + req.user.id + '"')
             } else {
                 console.log('failed subscribe')
                 res.send('error')

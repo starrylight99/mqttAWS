@@ -32,15 +32,19 @@ Temperature
 <span id="tempResult"></span>
 
 <p>Media Upload</p>
- <form action="/files/upload"  enctype="multipart/form-data" method="POST">
+<form action="/upload">
+    <input type="submit" value="Upload" />
+</form>
+
+ <!-- <form action="/files/upload"  enctype="multipart/form-data" method="POST">
     <input type="file" name="files" multiple>
     <input type="submit" value="Upload your files"/>
- </form>
+ </form> -->
 
-<p>Retrieve File</p>
+<p>Retrieve Playlist</p>
 <form id="retrieve">
     <input type="text" id="filename">
-    <input type="submit" value="Get File"/>
+    <input type="submit" value="Get Playlist"/>
 </form>
 <span id="retrieveResult"></span>
 </body>

@@ -22,9 +22,9 @@
         $("#newrows").click(function(){
             var addUpload = "<tr>";
             addUpload += "<td id = '"+ ++fileCount +"'><input type = 'file' name = 'file' accept='.jpg, .jpeg, .png .mov .mp4' required/><br><progress id='progressBar' value='0' max='100' style='width:300px;'></progress></td>";
-            addUpload += "<td><input type = 'text' name = 'fadeIn' pattern = '^(?:[1-9][0-9]*|0)$' required/></td>";
-            addUpload += "<td><input type = 'text' name = 'fadeOut' pattern = '^(?:[1-9][0-9]*|0)$' required/></td>";
-            addUpload += "<td><input type = 'text' name = 'length' id = 'length"+ fileCount +"' pattern = '^(?:[1-9][0-9]*)$'/></td>";
+            // addUpload += "<td><input type = 'text' name = 'fadeIn' pattern = '^(?:[1-9][0-9]*|0)$' required/></td>";
+            // addUpload += "<td><input type = 'text' name = 'fadeOut' pattern = '^(?:[1-9][0-9]*|0)$' required/></td>";
+            // addUpload += "<td><input type = 'text' name = 'length' id = 'length"+ fileCount +"' pattern = '^(?:[1-9][0-9]*)$'/></td>";
             addUpload += "</tr>";
             $("table tbody").append(addUpload);
             $("#"+fileCount).children().first().change(handleFiles);
@@ -38,7 +38,7 @@
     <center>
     <h1>File Upload</h1>
     <hr>
-    <form method = "POST" action = "/upload/files" enctype = "multipart/form-data">
+    <form method = "POST" action = "/files/upload" enctype = "multipart/form-data">
     <div class="block">
         <label>Playlist Name</label>
         <input type = 'text' name = 'playlistName' id = 'playlistName'/>
@@ -48,9 +48,9 @@
         <thead>
             <tr>
                 <th>File</th>
-                <th>Fade In</th>
+                <!-- <th>Fade In</th>
                 <th>Fade Out</th>
-                <th>Length</th>
+                <th>Length</th> -->
             </tr>
         <thead>
         <tbody>
@@ -60,9 +60,9 @@
                     <br>
                     <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
                 </td>
-                <td><input type = 'text' name = 'fadeIn' pattern = "^(?:[1-9][0-9]*|0)$" required/></td>
+                <!-- <td><input type = 'text' name = 'fadeIn' pattern = "^(?:[1-9][0-9]*|0)$" required/></td>
                 <td><input type = 'text' name = 'fadeOut' pattern = "^(?:[1-9][0-9]*|0)$" required/></td>
-                <td><input type = 'text' name = 'length' id = "length1" pattern = "^(?:[1-9][0-9]*)$"/></td>
+                <td><input type = 'text' name = 'length' id = "length1" pattern = "^(?:[1-9][0-9]*)$"/></td> -->
             </tr>
         </tbody>
     </table>
