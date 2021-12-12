@@ -4,7 +4,7 @@
         $('#temp').submit((event)=>{
             event.preventDefault()
             var test = $('#message').val()
-            $.post('/temperature', {
+            $.post('/mqtt/temperature', {
                 text: test,
             }, (data)=>{
                 $('#result').html(data)
@@ -23,13 +23,13 @@ Temperature
 <span id="result"></span>
 
 <p>Media Upload</p>
- <form action="/upload"  enctype="multipart/form-data" method="POST">
+ <form action="/files/upload"  enctype="multipart/form-data" method="POST">
     <input type="file" name="files" multiple>
     <input type="submit" value="Upload your files"/>
  </form>
 
 <p>Retrieve File</p>
-<form action="/retrieve"  enctype="multipart/form-data" method="GET">
+<form action="/files/retrieve"  enctype="multipart/form-data" method="GET">
     <input type="text" name="filename">
     <input type="submit" value="Get File"/>
  </form>
