@@ -1,0 +1,32 @@
+<body>
+    <center>
+    <h1>Devices</h1>
+    <hr>
+    <label for="location">Location Name: <%= user.location %> </label>
+    <table border ="1">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Location</th>
+                <th>Status</th>
+            </tr>
+        <thead>
+        <tbody>
+            <% piArray.forEach(pi => { %>
+                <% if (user.role == "superuser" || pi.location == user.location) { %>
+                    <tr>
+                        <td><%= pi.id %></td>
+                        <td><%= pi.name %></td>
+                        <td><%= pi.group %></td>
+                        <td><%= pi.location %></td>
+                        <td><%= piState.get(pi.id) == true ? "online" : "offline"%></td>
+                    </tr>
+                <% } %>
+            <% }) %> 
+        </tbody>
+    </table>
+    <hr>
+    </center>
+</body>

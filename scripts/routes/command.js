@@ -4,7 +4,7 @@ var router = express.Router()
 
 router.route('/')
     .get(checkAuthenticated, (req,res) => {
-        res.render('test', {
+        res.render('command', {
             authenticated: req.isAuthenticated(),
             previousPage: '/'
         })

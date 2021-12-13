@@ -41,10 +41,11 @@ app.listen(port)
 // Routes
 var homeRoute = require('./scripts/routes/home')
 var loginRoute = require('./scripts/routes/login')
-var testRoute = require('./scripts/routes/test')
+var commandRoute = require('./scripts/routes/command')
 var filesRoute = require('./scripts/routes/files')
 var mqttRoute = require('./scripts/routes/mqtt')
 var uploadRoute = require('./scripts/routes/upload')
+var devicesRoute = require('./scripts/routes/devices')
 const { checkAuthenticated } = require('./scripts/account/permissions.js')
 
 app.use('/', homeRoute)
@@ -54,10 +55,11 @@ app.delete('/logout', (req, res) => {
     res.redirect('/login')
 })
 
-app.use('/test', testRoute)
+app.use('/command', commandRoute)
 app.use('/files', filesRoute)
 app.use('/mqtt', mqttRoute)
 app.use('/upload', uploadRoute)
+app.use('/devices', devicesRoute)
 
 // Routes non-existant routes to home
 app.use((req, res) => {

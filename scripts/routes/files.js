@@ -37,7 +37,7 @@ router.route('/upload')
         }
         res.render('upload', {
             authenticated: req.isAuthenticated(),
-            previousPage: "test"
+            previousPage: "/command"
         })
     })
 
