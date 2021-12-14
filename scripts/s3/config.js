@@ -3,9 +3,9 @@ const { AWS } = require('../dependancies/modules')
 const config = require('./config.json')
 
 const s3Config = {
-    accessKeyId: config["superUser"].accessKeyId,
-    secretAccessKey: config.superUser.secretAccessKey,
-    region: config.superUser.region,
+    accessKeyId: config.accessKeyId,
+    secretAccessKey: config.secretAccessKey,
+    region: config.region,
 }
 // const s3Config = {
 //     accessKeyId: config["mavenAdmin"].accessKeyId,
