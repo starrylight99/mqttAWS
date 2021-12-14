@@ -1,0 +1,82 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(()=>{
+        $('#playlist').submit((event)=>{
+            event.preventDefault()
+            var table, tr, td, i;
+            table = document.getElementById('rankTable');
+            tr = table.getElementsByTagName('tr');
+
+            var playlist = []
+            var check = []
+            for (i = 1; i < tr.length; i++){
+                row = tr[i].getElementsByTagName('td')
+                if (row[1].firstChild.value){
+                    playlist.push([row[0].innerText, row[1].firstChild.value])
+                    check.push(row[1].firstChild.value)
+                }
+            }
+            if (check.length != Array.from(new Set(check)).length){
+                alert("There are duplicate sequence numbers entered. Please try again without any duplicates!")
+                return
+            }
+            playlist = playlist.sort((a, b) => a[1] - b[1])
+            
+            var playlistName = $('#playlistName').val()
+            var length = $('#length').val()
+            var width = $('#width').val()
+            var orientation = $('#orientation').val()
+
+            $.post('/files/createPlaylist', {
+                playlist: playlist,
+                length: length,
+                width: width,
+                orientation: orientation,
+                playlistName: playlistName,
+            }, (data)=>{
+                $('#playlistResult').html(data)
+            })
+        })
+    })
+</script>
+</head>
+
+
+<body>
+    <center>
+    <h1>Create Playlist</h1>
+    <hr>
+    <form id="playlist">
+    <div class="block">
+        <label>Playlist Name</label>
+        <input type = 'text' name = 'playlistName' id = 'playlistName'/>
+    </div>
+    <hr>
+    <table id='rankTable'>   
+        <tr>
+            <th>Media Files</th>
+            <th>Playlist Sequence</th>
+        </tr>
+        <% for (var i = 0; i < filenames.length; i++) { %>
+            <tr>
+                <td><%= filenames[i] %> </td>
+                <td><input type="number" class="seq"></td>
+            </tr>
+    
+        <% }; %>
+    </table>
+    <hr>
+    <label for='screenConfig'>Screen Configuration</label>
+    <input type="number" id='length'> x <input type="number" id='width'>
+
+    <label for='orientation'>Orientation: </label>
+    <select id='orientation'>
+        <option value="landscape">Landscape</option>
+        <option value="portrait">Portrait</option>
+    </select>
+    <hr>
+    <input type = "submit" value = "Create"/>
+    </form>
+    <span id="playlistResult"></span>
+    </center>
+</body>
