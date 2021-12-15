@@ -66,10 +66,11 @@ const getFiles = (group, req, res, callback) => {
         if (err) {
             console.log(err.message)
             return 'There was an error viewing your album: ' + err.message
-        }else{
+        } else{
+            //console.log(data)
             var filenames = []
-            data.Contents.forEach(function(obj,index){
-                filenames.push(obj.Key.split('/').at(-1))
+            data.Contents.forEach(function(obj){
+                filenames.push(obj.Key.split('/')[-1])
             })
             callback(filenames, req, res)
         }
