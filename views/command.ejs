@@ -1,0 +1,93 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    $(document).ready(()=>{
+        $('#temp').submit((event)=>{
+            event.preventDefault()
+            var test = $('#message').val()
+            $.post('/mqtt/temperature', {
+                text: test,
+            }, (data)=>{
+                $('#tempResult').html(data)
+            })
+        })
+        $('#retrieve').submit((event)=>{
+            event.preventDefault()
+            var playlist = $('#playlist').val()
+            $.post('/files/retrieve', {
+                playlist: playlist,
+            }, (data)=>{
+                $('#retrieveResult').html(data)
+            })
+        })
+        $('#delete').submit((event)=>{
+            event.preventDefault()
+            var filename = $('#filename').val()
+            $.post('/files/delete', {
+                filename: filename,
+            }, (data)=>{
+                $('#deleteResult').html(data)
+            })
+        })
+        $('#deletePlaylist').submit((event)=>{
+            event.preventDefault()
+            var delPlay = $('#delPlay').val()
+            $.post('/files/deletePlaylist', {
+                delPlay: delPlay,
+            }, (data)=>{
+                $('#deletePlaylistResult').html(data)
+            })
+        })
+    })  
+</script>
+<html>
+<body>
+Temperature
+<br>
+<form id="temp">
+    Message: <input type="text" id="message"><br>
+    <input type="submit">
+</form>
+<span id="tempResult"></span>
+
+<p>Send Schedule</p>
+    <form action="/mqtt/schedule" method="GET">
+        <input type="submit" value="Send" />
+    </form>
+
+<p>Media Upload</p>
+<form action="/upload">
+    <input type="submit" value="Upload" />
+</form>
+
+<p>Retrieve Playlist</p>
+<form id="retrieve">
+    <input type="text" id="playlist">
+    <input type="submit" value="Get Playlist"/>
+</form>
+<span id="retrieveResult"></span>
+
+<p>Delete File</p>
+<form id="delete">
+    <input type="text" id="filename">
+    <input type="submit" value="Delete"/>
+</form>
+<span id="deleteResult"></span>
+
+<p>Delete Playlist</p>
+<form id="deletePlaylist">
+    <input type="text" id="delPlay">
+    <input type="submit" value="Delete"/>
+</form>
+<span id="deletePlaylistResult"></span>
+
+<p>Create Playlist</p>
+<form action="/files/playlist" method="GET">
+    <input type="submit" value="Create" />
+</form>
+
+<p>Schedule</p>
+<form action="/files/schedule" method="GET">
+    <input type="submit" value="Create" />
+</form>
+</body>
+</html>

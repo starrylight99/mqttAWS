@@ -1,0 +1,155 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+    var count = 1
+    function showFilenames(){
+        var table = document.getElementById('chooseTable')
+        tr = table.getElementsByTagName('tr')
+        for (let i = 1; i < tr.length; i++){
+            var row = tr[i].getElementsByTagName('td')[0]
+            var radio = row.getElementsByTagName('input')[0]
+            var filename = row.innerText
+            radio.setAttribute('id', 'option' + i)
+            radio.setAttribute('value', filename)
+        }
+        var popup = document.getElementById('chooseMedia')
+        popup.style.display = 'block'
+        
+    }
+    function handleScreenConfig(){
+        var length = $('#length').val()
+        if (length == 1){
+            var option = document.getElementById('splitScreen')
+            option.style.display = 'block'
+            var label = document.getElementById('splitLabel')
+            label.style.display = 'block'
+        }
+        document.getElementById('screenTable').style.display = 'block'
+        document.getElementById('screenTable').border = '1'
+        // $('#screenTable').append("<p>Please Choose Your Files To Play</p>")
+        // for (var i = 0; i < length; i++){
+        //     var addLine = "<tr>" 
+        //     for (var j = 0; j < width; j++){
+        //         count.push(1)
+        //         addLine += "<td> <table class='screen' id='" + (i * width + j) + "'> <thead> <tr><h3>Screen " + (i * width + j + 1) + "</h3></tr> </head> </table> " + "<input type='button' onclick='showFilenames(" + (i * width + j) + ")' value='Add new entry'/> </td>"
+        //     }
+        //     addLine += "</tr>"
+        //     $('#screenTable tbody').append(addLine)
+        // }
+    }
+    $(document).ready(()=>{
+        $('#chooseMedia').submit((event) => {
+            event.preventDefault()
+            var chosen = document.querySelector('input[name="file"]:checked').value
+            var popup = document.getElementById('chooseMedia')
+            var addLine = "<tr> <td>" + count + ". </td> <td>" + chosen
+            if (chosen.match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
+                addLine += "</td> <td> <input type='number' step='0.1' class='duration' id='dur_" + count + "' placeholder='Duration (in sec)' required />"
+            }
+            addLine += "</td></tr>"
+            count++
+            $('#screenTable tbody').append(addLine)
+            popup.style.display = 'none'
+        })
+        $('#playlist').submit((event)=>{
+            event.preventDefault()
+
+            var playlist = []
+            var imgConfig = []
+            var screens = $('#length').val()
+            var screenTable = document.getElementById('screenTable')
+            var entries = screenTable.getElementsByTagName('tr')
+            console.log(entries)
+            for (var i = 1; i < entries.length-1; i++){
+                var td = entries[i].getElementsByTagName('td')
+                console.log(td)
+                playlist.push(td[1].innerText)
+            }
+            var imgs = document.getElementsByClassName('duration')
+            for (var i = 0; i < imgs.length; i++){
+                var id = imgs[i].getAttribute('id')
+                imgConfig.push([$('#'+id).val(), id.split('_')[1]])
+            }
+            console.log(playlist)
+            console.log(imgConfig)
+
+            var checkedScreen = false
+            if (document.getElementById('splitScreen').checked){
+                checkedScreen = true
+            }
+            
+            console.log(checkedScreen)
+            var playlistName = $('#playlistName').val()
+            var orientation = $('#orientation').val()
+
+            $.post('/files/createPlaylist', {
+                playlist: playlist,
+                imgConfig: imgConfig,
+                screens: screens,
+                checkedScreen: checkedScreen,
+                orientation: orientation,
+                playlistName: playlistName,
+            }, (data)=>{
+                $('#playlistResult').html(data)
+            })
+        })
+    })
+</script>
+</head>
+
+
+<body>
+    <center>
+    <h1>Create Playlist</h1>
+    <hr>
+    <form id="chooseMedia" style="display:none;position:absolute;left:50%; top:50%; transform: translate(-50%, -50%);border:3px solid black;z-index:9;background-color:gray">
+        <table id='chooseTable'>   
+            <tr>
+                <th>Media Files</th>
+            </tr>
+            <% for (var i = 0; i < filenames.length; i++) { %>
+                <tr>
+                    <td>
+                        <input type='radio' name='file'><%= filenames[i] %>
+                    </td>
+                </tr>
+            <% }; %>
+        </table>
+        <input type = "submit" value = "Choose"/>
+    </form>
+    <form id="playlist">
+    <div class="block">
+        <label>Playlist Name</label>
+        <input type = 'text' name = 'playlistName' id = 'playlistName'/>
+    </div>
+
+    <hr>
+    <label for='screenConfig'>Screens:</label>
+    <input type="number" id='length' placeholder="Number of Screen(s)">
+    <input type="button" onclick="handleScreenConfig()" value="Confirm"> 
+
+    <label for='orientation'>Orientation: </label>
+    <select id='orientation'>
+        <option value="landscape">Landscape</option>
+        <option value="portrait">Portrait</option>
+    </select>
+    <br>
+    <input type="checkbox" style='display:none' id="splitScreen" value=1 ><label for="splitScreen" style='display:none' id='splitLabel'>Split-Screen?</label>
+    <hr>
+    
+    <table id='screenTable' style='display:none'>
+        <thead>
+            <th colspan="3">Screen</th>
+        </thead>
+        <tbody>
+            
+        </tbody>
+        <tfoot>
+            <tr><td><input type='button' onclick='showFilenames()' value='Add new entry'/> </td> </tr>
+        </tfoot>
+    </table>
+    <hr>
+    <input type = "submit" value = "Create"/>
+    </form>
+    <span id="playlistResult"></span>
+    </center>
+</body>

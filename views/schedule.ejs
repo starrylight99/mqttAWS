@@ -1,0 +1,269 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+    var totalScreens = 0
+    var orientation = ""
+    var aspect_ratio = []
+    var lineCount = 0
+    var playlistNames = []
+    var playlistAR = []
+    var playlistCount = []
+    var totalScreensUsage = []
+    var validated = []
+    const CSS_COLOR_NAMES = [
+        "Blue",
+        "Brown",
+        "Crimson",
+        "Cyan",
+        "DarkGray",
+        "DarkGreen",
+        "DarkOrange",
+        "DarkRed",
+        "DarkTurquoise",
+        "Gold",
+        "LightBlue",
+        "Lime",
+        "Maroon",
+        "Pink",
+        "Purple",
+        "Red",
+        "Silver",
+        "Teal",
+        "Yellow",
+    ];
+    function add(accumulator, a) {
+        if (a == undefined){
+            return accumulator + 0;
+        }
+        return accumulator + a;
+    }
+    function onClickList(e){
+        var i = e.id.split('_')[1]
+        var list = document.getElementById("div_" + i)
+        if (list.style.display == "none"){
+            list.style.display = "block";
+        }else{
+            list.style.display = "none";
+        }
+    }
+    function updateValidity(lineCount){
+        validated[lineCount] = false
+    }
+    function addPlaylist(lineCount){
+        var addLine = "<tr><td><div style='background-color:" + CSS_COLOR_NAMES[playlistCount[lineCount] % CSS_COLOR_NAMES.length] + ";height: 15px;width: 15px;border: 1px solid black;'></div></td><td> <select id='playlistChoice_" + lineCount + '_' + playlistCount[lineCount] + "' onchange='updateValidity(" + lineCount + ")'>"
+        addLine += "<option value='' id='" + lineCount + '_' + playlistCount[lineCount]++ + "'disabled selected>Select Playlist</option>"
+        for (var i in playlistNames){
+            addLine += "<option value='" + i + "'>" + playlistNames[i] + "</option>"
+        }
+        addLine += "</td></tr>"
+        $("#timeblock_" + lineCount + " tbody").append(addLine)
+    }
+    function validate(lineCount){
+        var canvas = document.getElementById('canvas_' + lineCount)
+        var draw_block = canvas.getContext('2d')
+        draw_block.clearRect(0, 0, canvas.width, canvas.height);
+        var curr_x = 0
+        var split = false
+        var split_x = 0
+        for (var i = 0; i < playlistCount[lineCount]; i++){
+            var name = playlistNames[parseInt($('#playlistChoice_' + lineCount + '_' + i).val())]
+            var ar = playlistAR[parseInt($('#playlistChoice_' + lineCount + '_' + i).val())]
+            var curr_y = 0
+            draw_block.fillStyle = CSS_COLOR_NAMES[i % CSS_COLOR_NAMES.length]
+            if (ar[1] == 8){
+                if (split){
+                    curr_y = ar[1] * 5
+                    split = false
+                    draw_block.fillRect(split_x, curr_y, ar[0] * 5, ar[1] * 5)
+                }else{
+                    split_x = curr_x
+                    split = true
+                    draw_block.fillRect(curr_x, curr_y, ar[0] * 5, ar[1] * 5)
+                    curr_x += ar[0] * 5
+                }
+            }else{
+                draw_block.fillRect(curr_x, curr_y, ar[0] * 5, ar[1] * 5)
+                curr_x += ar[0] * 5
+            }
+        }
+        if (curr_x > aspect_ratio[0]*5*totalScreens){
+            for (var i = 0; i < playlistCount[lineCount]; i++){
+                document.getElementById('' + lineCount + '_' + i).selected = true
+            }
+            draw_block.clearRect(0, 0, canvas.width, canvas.height);
+            alert("Playlists exceeds screen layout! Please try again.")
+            validated[lineCount] = false
+            return
+        }
+        curr_x = 0
+        for (var i = 0; i < totalScreens; i++){
+            draw_block.strokeRect(curr_x, 0, aspect_ratio[0]*5, aspect_ratio[1]*5)
+            curr_x += aspect_ratio[0]*5
+        }
+        validated[lineCount] = true
+    }
+    function addEntry(){
+        playlistCount.push(0)
+        totalScreensUsage.push([])
+        validated.push(false)
+        var addLine = "<tr><td><input type='time' value='00:00:00' min='00:00:00' max='23:59:59' step='1' class ='time_" + lineCount + "'>-<input type='time' value='00:00:00' min='00:00:00' max='23:59:59' step='1' class ='time_" + lineCount + "'></td>";
+        addLine += "<td> <table border='0' id='timeblock_" + lineCount + "'><tbody></tbody><tfoot><input type='button' onclick='addPlaylist(" + lineCount +")' value='Add Playlist'></tfoot></table></td>"
+        addLine += "<td> <input type='button' onclick=validate(" + lineCount + ") value='Validate'>"
+        addLine += " Layout: <canvas id='canvas_" + lineCount + "' width='" + aspect_ratio[0]*5*totalScreens + "' height='" + aspect_ratio[1]*5 + "' style='border: 1px solid black;'></canvas>"
+        addLine += "</td>"
+        lineCount++
+        $("#scheduleTableBody").append(addLine)
+    }
+    $(document).ready(()=>{
+        var info = document.getElementsByClassName("playlistInfo")
+        var names = document.getElementsByClassName('playlistName')
+        var screens = document.getElementsByClassName('playlistScreens')
+        var orientations = document.getElementsByClassName('playlistOrientation')
+        var splitScreens = document.getElementsByClassName('playlistSplitScreen')
+        for (var i = 0; i < names.length; i++){
+            info[i].setAttribute('id', 'div_' + i)
+            names[i].setAttribute('id', 'name_' + i)
+            screens[i].setAttribute('id', 'screens_' + i)
+            orientations[i].setAttribute('id', 'orientation_' + i)
+        }
+        $("#subConfig").click((event) => {
+            totalScreens = $('#totalScreens').val()
+            orientation = $('#orientation').val()
+            document.getElementById("afterScreenConfig").style.display = "block"
+            document.getElementById("schedule").style.display = "block"
+            if (orientation.toUpperCase() == "LANDSCAPE"){
+                aspect_ratio = [16,9]
+            }else{
+                aspect_ratio = [9,16]
+            }
+            for (var i = 0; i < names.length; i++){
+                if (orientations[i].textContent.split(' ')[1].toUpperCase() == orientation.toUpperCase()){
+                    playlistNames.push(names[i].textContent)
+                    var ratio = 0
+                    if (splitScreens[i].textContent.toUpperCase() == "TRUE"){
+                        ratio = 0.5
+                    }else{
+                        playlistAR.push()
+                        ratio = parseInt(screens[i].textContent.split(' ')[4])
+                    }
+                    if ((orientation.toUpperCase() == "PORTRAIT") && (ratio == 0.5)){
+                        playlistAR.push([aspect_ratio[0], aspect_ratio[1] * ratio])
+                    }else{
+                        playlistAR.push([aspect_ratio[0] * ratio, aspect_ratio[1]])
+                    }
+                }else{
+                    names[i].style.display = "none"
+                    info[i].style.display = "none"
+                }
+            }
+        })
+        $('#schedule').submit((event) => {
+            event.preventDefault()
+            for (var i = 0; i < lineCount; i++){
+                if (!validated[i]){
+                    alert("Please validate all timings")
+                    return
+                }
+            }
+            var schedule = []
+            var uniquePlaylist = []
+            curr_end = '00:00:00'
+            for (var i = 0; i < lineCount; i++){
+                var timings = document.getElementsByClassName('time_' + i)
+                var start = timings[0].value
+                var end = timings[1].value
+                if (start >= end){
+                    alert("End time should be later than the start time")
+                    return
+                }
+                if ((i != 0) && (start <= curr_end)){
+                    alert("Please check for any overlap between timings")
+                    return
+                }
+                curr_end = end
+                var playlists = []
+                for (var j = 0; j < playlistCount[i]; j++){
+                    var name = playlistNames[parseInt($('#playlistChoice_' + i + '_' + j).val())]
+                    playlists.push(name)
+                    uniquePlaylist.push(name)
+                }
+                schedule.push({
+                    "startTime": start,
+                    "endTime": end,
+                    "playlists": playlists
+                })
+            }
+            uniquePlaylist = Array.from(new Set(uniquePlaylist))
+            var scheduleName = $('#scheduleName').val()
+            $.post('/files/createSchedule', {
+                orientation: orientation,
+                totalScreens: totalScreens,
+                scheduleName: scheduleName,
+                schedule: schedule,
+                uniquePlaylist: uniquePlaylist,
+            }, (data) => {
+                $('#scheduleResult').html(data)
+            })
+        })
+    })
+</script>
+</head>
+
+<body>
+    <center>
+        <h1>Schedule</h1>
+        <hr>
+        <form id='screensConfig'>
+            <label for='screenConfig'>Enter total number of screens:</label>
+            <input type="number" id='totalScreens' placeholder="Number of Screen(s)">
+            <label for='orientation'>Orientation: </label>
+            <select id='orientation'>
+                <option value="landscape">Landscape</option>
+                <option value="portrait">Portrait</option>
+            </select>
+            <input type="button" id="subConfig" value="Confirm"> 
+            <hr>
+        </form>
+
+        <div id='afterScreenConfig' style="display: none;">
+            <h2>Playlists:</h2>
+            <h4>For more info, click on the playlist's name</h4>
+            <% for (var i = 0; i < config.length; i++) { %>
+                <h3 class='playlistName' onclick="onClickList(this)"><%= config[i].playlistName %></h3>
+                <div class='playlistInfo' style="display:none; border: 2px solid black">
+                    <h5>Playlist:</h5>
+                    <ol>
+                        <% for (var j = 0; j < config[i].playlist.length; j++) { %>
+                            <li><%= config[i].playlist[j] %></li>
+                        <% }; %>
+                    </ol>
+                    <h5 class='playlistScreens'>Number of Screens used: <%= config[i].screens %></h5>
+                    <h5 class='playlistOrientation'>Orientation: <%= config[i].orientation %></h5>
+                    <h5 class='playlistSplitScreen' style="display:none;" ><%= config[i].checkedScreen %></h5>
+                </div>
+            <% }; %>
+            <hr>
+        </div>
+
+        <form id="schedule" style="display: none;">
+            <h2>Scheduling Table</h2>
+            <label>Schedule Name</label>
+            <input type ='text' id='scheduleName'/>    
+            <table id='scheduleTable' border="1">
+                <thead>
+                    <th>Time</th>
+                    <th>Playlists</th>
+                    <th>Validate</th>
+                </thead>
+                <tbody id='scheduleTableBody'>
+                </tbody>
+                <tfoot>
+                    <tr><td colspan="3"><input type='button' onclick='addEntry()' value='Add new entry'/> </td></tr>
+                </tfoot>
+            </table>
+            <input type = "submit" value = "Submit"/>
+        </form>
+        <span id="scheduleResult"></span>
+    </center>
+</body>
+
+

@@ -1,0 +1,33 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    $(document).ready(()=>{
+        var choices = document.getElementsByClassName('scheduleChoices')
+        for (var i = 0; i < choices.length; i++){
+            choices[i].setAttribute('value', choices[i].textContent)
+        }
+        $('#schedule').submit((event)=>{
+            event.preventDefault()
+            var scheduleName = $('#scheduleOptions').val()
+            $.post('/mqtt/sendSchedule', {
+                schedule:scheduleName
+            }, (data) => {
+                $('#scheduleResult').html(data)
+            })
+        })
+    })
+</script>
+<html>
+<body>
+    <p>Send Schedule</p>
+    <form id='schedule'>
+        <select id='scheduleOptions'>
+            <option value='' disabled selected>Select Schedule</option>
+            <% for (var i = 0; i < schedules.length; i++) { %>
+                <option class="scheduleChoices" value=''><%= schedules[i] %></option>
+            <% }; %>
+        </select>
+        <input type="submit">
+    </form>
+    <span id="scheduleResult"></span>
+</body>
+</html>
