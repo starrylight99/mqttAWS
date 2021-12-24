@@ -1,3 +1,56 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    function deleteSchedule(e){
+        console.log(e)
+        console.log(e.id)
+        var i = e.id.split('_')[1]
+        var j = e.id.split('_')[2]
+        console.log('filename_' + i + '_' + j)
+        var schedule = document.getElementById('filename_' + i + '_' + j).textContent
+        var id = document.getElementById('id_' + i).textContent
+        $.post('/mqtt/delete', {
+            schedule: schedule,
+            id: id
+        }, (data)=>{
+            $('#tempResult').html(data)
+        })
+        
+    }
+    function sendSchedule(e){
+        var i = e.id.split('_')[1]
+        var schedule = $('#scheduleOptions_' + i).val()
+        var id = document.getElementById('id_' + i).textContent
+        $.post('/mqtt/sendSchedule', {
+                schedule: schedule,
+                id: id
+            }, (data) => {
+                $('#scheduleResult').html(data)
+            })
+    }
+    $(document).ready(()=>{
+        var idRows = document.getElementsByClassName('idRows')
+        for (var i = 0; i < idRows.length; i++){
+            var td = idRows[i].getElementsByTagName('td')
+            td[0].setAttribute('id', 'id_' + i)
+            var scheduleRows = idRows[i].getElementsByClassName('schedule')
+            var delButtons = idRows[i].getElementsByClassName('delButton')
+            idRows[i].getElementsByTagName('select')[0].setAttribute('id', 'scheduleOptions_' + i)
+            idRows[i].getElementsByClassName('sendButton')[0].setAttribute('id', 'sendButton_' + i)
+
+            var choices = idRows[i].getElementsByClassName('scheduleChoices')
+            for (var j = 0; j < choices.length; j++){
+                choices[j].setAttribute('value', choices[j].textContent)
+            }
+            for (var j = 0; j < scheduleRows.length; j++){
+                var td = scheduleRows[j].getElementsByTagName('td')
+                td[0].setAttribute('id', 'filename_' + i + '_' + j)
+                delButtons[j].setAttribute('id', 'button_' + i + '_' + j)
+            }
+        }
+        
+    })  
+</script>
+<html>
 <body>
     <center>
     <h1>Devices</h1>
@@ -11,17 +64,45 @@
                 <th>Company</th>
                 <th>Location</th>
                 <th>Status</th>
+                <th>Schedules</th>
+                <th>Upload Schedule</th>
             </tr>
         <thead>
         <tbody>
             <% piArray.forEach(pi => { %>
                 <% if (user.role == "superuser" || pi.location == user.location) { %>
-                    <tr>
+                    <tr class='idRows'>
                         <td><%= pi.id %></td>
                         <td><%= pi.name %></td>
                         <td><%= pi.group %></td>
                         <td><%= pi.location %></td>
-                        <td><%= piState.get(pi.id) == true ? "online" : "offline"%></td>
+                        <td><%= piState.get(pi.id).online == true ? "online" : "offline"%></td>
+                        <td>
+                            <table border='0'>
+                                <% for (var i = 0; i < piState.get(pi.id).schedules.length; i++) { %>
+                                    <tr class='schedule'>
+                                        <td>
+                                            <%= piState.get(pi.id).schedules[i] %>
+                                        </td>
+                                        <td>
+                                            <input type='button' class='delButton' onclick='deleteSchedule(this)' value='Delete'>
+                                        </td>
+                                    </tr>
+                                <% }; %>
+                            </table>
+                        </td>
+                        <td>
+                            <form class='scheduleForm'>
+                                <select>
+                                    <option value='' disabled selected>Select Schedule</option>
+                                    <% for (var i = 0; i < schedules.length; i++) { %>
+                                        <option class="scheduleChoices" value=''><%= schedules[i] %></option>
+                                    <% }; %>
+                                </select>
+                                <input type='button' class='sendButton' onclick='sendSchedule(this)' value='Send'>
+                            </form>
+                            <span id="scheduleResult"></span>
+                        </td>
                     </tr>
                 <% } %>
             <% }) %> 
@@ -30,3 +111,4 @@
     <hr>
     </center>
 </body>
+</html>

@@ -9,9 +9,9 @@ router.route('/temperature')
     .post(checkAuthenticated, async(req, res) => {
         console.log(req.body)
         resetTemp()
-        client.subscribe('temperature', (err)=> {
+        client.subscribe('webApp', (err)=> {
             if (!err) {
-                client.publish('temperature', req.body.text/*  + ' ' + req.user.id */)
+                client.publish('ping', req.body.text/*  + ' ' + req.user.id */)
                 console.log('sent msg "' + req.body.text + '"')
             } else {
                 console.log('failed subscribe')
@@ -24,23 +24,36 @@ router.route('/temperature')
         res.send(message)
     })
 
-router.route('/schedule')
-    .get(checkAuthenticated, (req, res, next) => {
-        getSchedules(req.user.group, req, res, function(schedules, req, res) {
-            res.render('sendSchedule', {
-                authenticated: req.isAuthenticated(),
-                previousPage: "/command",
-                schedules: schedules
-            })
+router.route('/sendSchedule') 
+    .post(checkAuthenticated, async(req, res) => {
+        var schedule = req.body.schedule.toString().replace(/(\n)/gm,'')
+        var msg = "schedule/" + req.body.id + '/' + schedule
+        msg = msg.replace(/ /g,'').replaceAll('/', ' ')
+        console.log(msg)
+        client.subscribe('webApp', (err) => {
+            if (!err) {
+                client.publish('schedule', msg)
+                console.log('sent msg "' + msg + '"')
+            }else {
+                console.log('failed subscribe')
+                res.send('error')
+            }
         })
     })
 
-router.route('/sendSchedule') // TODO: finish command to send to pi, depending on configuration, copy paste get playlist and download schedule
+router.route('/delete')
     .post(checkAuthenticated, async(req, res) => {
-        console.log(req.body.schedule)
-        client.subscribe('schedule', (err) => {
+        var schedule = req.body.schedule.toString().replace(/(\n)/gm,'')
+        var msg = "delete/" + req.body.id + '/' + schedule
+        msg = msg.replace(/ /g,'').replaceAll('/', ' ')
+        console.log(msg)
+        client.subscribe('webApp', (err) => {
             if (!err) {
-                client.publish('schedule', "test" )
+                client.publish('delete', msg)
+                console.log('sent msg "' + msg + '"')
+            }else {
+                console.log('failed subscribe')
+                res.send('error')
             }
         })
     })

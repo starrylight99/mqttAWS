@@ -2,6 +2,7 @@ const { config } = require('aws-sdk');
 const { fs } = require('../dependancies/modules')
 var { s3 } = require('./config')
 
+
 const uploadSchedule = (schedule, group) => {
     console.log(schedule.scheduleName)
     fs.createWriteStream('uploads/'+ group + '_' + schedule.scheduleName + '_schedule.json');
@@ -98,7 +99,7 @@ const getFiles = (group, req, res, callback) => {
     })
 }
 
-const getSchedules = (group, req, res, callback) => {
+const getSchedules = (group, req, res, piState, pi, callback) => {
     const params = {
         Bucket: 'maventest',
         Prefix: group + '/schedules/', 
@@ -112,9 +113,9 @@ const getSchedules = (group, req, res, callback) => {
             //console.log(data)
             var schedules = []
             data.Contents.forEach(function(obj){
-                schedules.push(obj.Key.split('/').at(-1).split('_')[0])
+                schedules.push(obj.Key.split('/').at(-1).replace('_schedule.json', ''))
             })
-            callback(schedules, req, res)
+            callback(schedules, req, res, piState, pi)
         }
     })
 }
