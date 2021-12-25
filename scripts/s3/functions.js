@@ -40,7 +40,12 @@ const uploadConfig = (file, playlistName, group) => {
         }
         console.log(`File uploaded successfully. ${data.Location}`);
     });
-    var playlistSet = Array.from(new Set(file.playlist))
+
+    var playlistSet = []
+    for (let i = 0; i < file.playlist.length; i++){
+        playlistSet.push(file.playlist[i][0])
+    }
+    playlistSet = Array.from(new Set(playlistSet))
     for (let i = 0; i < playlistSet.length; i++){
         var filename = group + '/media/' + playlistSet[i]
         const fileParams = {

@@ -55,14 +55,13 @@ router.route('/playlist')
     })
 
 router.route('/createPlaylist')
-    .post(checkAuthenticated, async(req, res, next) => {
+    .post(checkAuthenticated, (req, res, next) => {
         var test = {
             "playlistName": req.body.playlistName,
-            "imgConfig": req.body.imgConfig,
+            "aspectRatio": req.body.aspectRatio,
             "playlist": req.body.playlist,
             "screens": req.body.screens,
             "orientation": req.body.orientation,
-            "checkedScreen": req.body.checkedScreen,
         }
         uploadConfig(test, req.body.playlistName, req.user.group)
     })

@@ -7,8 +7,18 @@
     var playlistNames = []
     var playlistAR = []
     var playlistCount = []
+    // var dayCount = []
     var totalScreensUsage = []
     var validated = []
+    const week = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+    ]
     const CSS_COLOR_NAMES = [
         "Blue",
         "Brown",
@@ -30,12 +40,7 @@
         "Teal",
         "Yellow",
     ];
-    function add(accumulator, a) {
-        if (a == undefined){
-            return accumulator + 0;
-        }
-        return accumulator + a;
-    }
+
     function onClickList(e){
         var i = e.id.split('_')[1]
         var list = document.getElementById("div_" + i)
@@ -101,24 +106,41 @@
         }
         validated[lineCount] = true
     }
+    // function addDay(lineCount){
+    //     var addLine = "<tr><td><select id='dayChoice_" + lineCount + '_' + dayCount[lineCount] + "'>"
+    //     addLine += "<option value='' id='day_" + lineCount + '_' + dayCount[lineCount]++ + "'disabled selected>Select Day</option>"
+    //     for (var i in week){
+    //         addLine += "<option value='" + week[i] + "'>" + week[i] + "</option>"
+    //     }
+    //     addLine += "</td></tr>"
+    //     if (dayCount[lineCount] == 7){
+    //         document.getElementById('dayButton_' + lineCount).disabled = true
+    //     }
+    //     $("#dayblock_" + lineCount + " tbody").append(addLine)
+    // }
     function addEntry(){
         playlistCount.push(0)
+        // dayCount.push(0)
         totalScreensUsage.push([])
         validated.push(false)
-        var addLine = "<tr><td><input type='time' value='00:00:00' min='00:00:00' max='23:59:59' step='1' class ='time_" + lineCount + "'>-<input type='time' value='00:00:00' min='00:00:00' max='23:59:59' step='1' class ='time_" + lineCount + "'></td>";
+        var addLine = "<tr><td>Select Days:"
+        for (var i in week){
+            addLine += "<div><input type='checkbox' class='dayblock_" + lineCount + "' value='" + week[i] + "' id='" + week[i] + "_" + lineCount + "'><label for='" + week[i] + "_" + lineCount + "'>" + week[i] + "</label></div>"
+        }            
+        addLine += "</td><td><input type='time' value='00:00' min='00:00' max='23:59' class ='time_" + lineCount + "'>-<input type='time' value='00:00' min='00:00' max='23:59' class ='time_" + lineCount + "'></td>";
         addLine += "<td> <table border='0' id='timeblock_" + lineCount + "'><tbody></tbody><tfoot><input type='button' onclick='addPlaylist(" + lineCount +")' value='Add Playlist'></tfoot></table></td>"
         addLine += "<td> <input type='button' onclick=validate(" + lineCount + ") value='Validate'>"
         addLine += " Layout: <canvas id='canvas_" + lineCount + "' width='" + aspect_ratio[0]*5*totalScreens + "' height='" + aspect_ratio[1]*5 + "' style='border: 1px solid black;'></canvas>"
-        addLine += "</td>"
+        addLine += "</td></tr>"
         lineCount++
-        $("#scheduleTableBody").append(addLine)
+        $('#scheduleTableBody').append(addLine)
     }
     $(document).ready(()=>{
         var info = document.getElementsByClassName("playlistInfo")
         var names = document.getElementsByClassName('playlistName')
         var screens = document.getElementsByClassName('playlistScreens')
         var orientations = document.getElementsByClassName('playlistOrientation')
-        var splitScreens = document.getElementsByClassName('playlistSplitScreen')
+        var aspectRatios = document.getElementsByClassName('playlistAspectRatio')
         for (var i = 0; i < names.length; i++){
             info[i].setAttribute('id', 'div_' + i)
             names[i].setAttribute('id', 'name_' + i)
@@ -138,18 +160,8 @@
             for (var i = 0; i < names.length; i++){
                 if (orientations[i].textContent.split(' ')[1].toUpperCase() == orientation.toUpperCase()){
                     playlistNames.push(names[i].textContent)
-                    var ratio = 0
-                    if (splitScreens[i].textContent.toUpperCase() == "TRUE"){
-                        ratio = 0.5
-                    }else{
-                        playlistAR.push()
-                        ratio = parseInt(screens[i].textContent.split(' ')[4])
-                    }
-                    if ((orientation.toUpperCase() == "PORTRAIT") && (ratio == 0.5)){
-                        playlistAR.push([aspect_ratio[0], aspect_ratio[1] * ratio])
-                    }else{
-                        playlistAR.push([aspect_ratio[0] * ratio, aspect_ratio[1]])
-                    }
+                    var arLine = aspectRatios[i].textContent.replace('Aspect Ratio: ', '').split(' x ')
+                    playlistAR.push([parseInt(arLine[0]), parseInt(arLine[1])])
                 }else{
                     names[i].style.display = "none"
                     info[i].style.display = "none"
@@ -164,19 +176,16 @@
                     return
                 }
             }
+
             var schedule = []
             var uniquePlaylist = []
-            curr_end = '00:00:00'
+            curr_end = '00:00'
             for (var i = 0; i < lineCount; i++){
                 var timings = document.getElementsByClassName('time_' + i)
                 var start = timings[0].value
                 var end = timings[1].value
                 if (start >= end){
                     alert("End time should be later than the start time")
-                    return
-                }
-                if ((i != 0) && (start <= curr_end)){
-                    alert("Please check for any overlap between timings")
                     return
                 }
                 curr_end = end
@@ -186,11 +195,35 @@
                     playlists.push(name)
                     uniquePlaylist.push(name)
                 }
+                var days = []
+                $("input:checkbox[class=dayblock_" + i + "]:checked").each(function(){
+                    days.push($(this).val());
+                })
+                // for (var j = 0; j < dayCount[i]; j++){
+                //     days.push($('#dayChoice_' + i + '_' + j).val())
+                // }
+                for (var j in schedule){
+                    console.log('a <= d, c <= b')
+                    console.log('a: ' + start)
+                    console.log('b: ' + end)
+                    console.log('c: ' + schedule[j].startTime)
+                    console.log('d: ' + schedule[j].endTime)
+                    if (days.filter(value => schedule[j].days.includes(value)).length > 0){
+                        if (start <= schedule[j].endTime && schedule[j].startTime <= end){
+                            
+                            alert("Please check for any overlap between timings")
+                            return
+                        }
+                    }
+                }
                 schedule.push({
                     "startTime": start,
                     "endTime": end,
-                    "playlists": playlists
+                    "playlists": playlists,
+                    "days": days
                 })
+                console.log(schedule)
+                console.log(i)
             }
             uniquePlaylist = Array.from(new Set(uniquePlaylist))
             var scheduleName = $('#scheduleName').val()
@@ -238,7 +271,7 @@
                     </ol>
                     <h5 class='playlistScreens'>Number of Screens used: <%= config[i].screens %></h5>
                     <h5 class='playlistOrientation'>Orientation: <%= config[i].orientation %></h5>
-                    <h5 class='playlistSplitScreen' style="display:none;" ><%= config[i].checkedScreen %></h5>
+                    <h5 class='playlistAspectRatio'>Aspect Ratio: <%= config[i].aspectRatio[0] %> x <%= config[i].aspectRatio[1] %></h5>
                 </div>
             <% }; %>
             <hr>
@@ -247,9 +280,10 @@
         <form id="schedule" style="display: none;">
             <h2>Scheduling Table</h2>
             <label>Schedule Name</label>
-            <input type ='text' id='scheduleName'/>    
-            <table id='scheduleTable' border="1">
+            <input type ='text' id='scheduleName' required/>
+            <table class='scheduleTable' border="1">
                 <thead>
+                    <th>Day</th>
                     <th>Time</th>
                     <th>Playlists</th>
                     <th>Validate</th>
@@ -257,9 +291,10 @@
                 <tbody id='scheduleTableBody'>
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="3"><input type='button' onclick='addEntry()' value='Add new entry'/> </td></tr>
+                    <tr><td colspan="4"><input type='button' onclick='addEntry()' value='Add new entry'/> </td></tr>
                 </tfoot>
             </table>
+
             <input type = "submit" value = "Submit"/>
         </form>
         <span id="scheduleResult"></span>
