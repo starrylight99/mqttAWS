@@ -46,6 +46,9 @@ var filesRoute = require('./scripts/routes/files')
 var mqttRoute = require('./scripts/routes/mqtt')
 var uploadRoute = require('./scripts/routes/upload')
 var devicesRoute = require('./scripts/routes/devices')
+var mediaRoute = require('./scripts/routes/media')
+var playlistRoute = require('./scripts/routes/viewPlaylist')
+var scheduleRoute = require('./scripts/routes/viewSchedule')
 const { checkAuthenticated } = require('./scripts/account/permissions.js')
 
 app.use('/', homeRoute)
@@ -60,6 +63,10 @@ app.use('/files', filesRoute)
 app.use('/mqtt', mqttRoute)
 app.use('/upload', uploadRoute)
 app.use('/devices', devicesRoute)
+app.use('/media', mediaRoute)
+app.use('/viewPlaylist', playlistRoute)
+app.use('/viewSchedule', scheduleRoute)
+app.use(express.static('public'));
 
 // Routes non-existant routes to home
 app.use((req, res) => {

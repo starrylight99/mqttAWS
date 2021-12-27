@@ -1,34 +1,112 @@
 const { config } = require('aws-sdk');
-const { fs } = require('../dependancies/modules')
+const { fs, mime } = require('../dependancies/modules')
 var { s3 } = require('./config')
 
+var listObject = function(params) {
+    return new Promise(function(success, reject) {
+        s3.listObjectsV2(params,
+            function (error, data) {
+                if(error) {
+                    reject(error);
+                } else {
+                    success(data);
+                }
+            }
+        );
+    });
+}
 
 const uploadSchedule = (schedule, group) => {
     console.log(schedule.scheduleName)
-    fs.createWriteStream('uploads/'+ group + '_' + schedule.scheduleName + '_schedule.json');
-    fs.writeFileSync('uploads/'+ group + '_' + schedule.scheduleName + '_schedule.json', JSON.stringify(schedule))
-    var fileContent = fs.readFileSync('uploads/'+ group + '_' + schedule.scheduleName + '_schedule.json');
-    const params = {
-        Bucket: 'maventest',
-        Key: group + '/schedules/' + schedule.scheduleName + '_schedule.json', 
-        Body: fileContent
-    };
+    
+    var promises = []
+    for (var i = 0; i < schedule.uniquePlaylist.length; i++){
+        const playlistParams = {
+            Bucket: 'maventest1',
+            Prefix: group + '/' + schedule.uniquePlaylist[i] + '/', 
+            Delimiter: '/'
+        };
+        promises.push(listObject(playlistParams))
+    }
+    Promise.all(promises)
+        .then(function(results){
+            var mediaNames = {}
+            var playlistMedia = {}
+            for (var i in results){
+                playlistMedia[schedule.uniquePlaylist[i]] = []
+                console.log(1)
+                console.log(playlistMedia)
+                results[i].Contents.forEach(function(obj){
+                    var filepath = obj.Key
+                    const fileParams = {
+                        Bucket: 'maventest1',
+                        CopySource: 'maventest1/' + filepath,
+                        Key: group + '/schedules/'+ schedule.scheduleName + '/' + schedule.uniquePlaylist[i] + '/' + filepath.split('/').slice(-1)[0],
+                    }
+                    console.log(2)
+                    console.log(playlistMedia)
+                    if (filepath.split('/').slice(-1)[0].split('.').slice(-1)[0] != 'json'){
+                        playlistMedia[schedule.uniquePlaylist[i]].push(filepath.split('/').slice(-1)[0])
+                    }
+                    mediaNames[filepath.split('/').slice(-1)[0]] = schedule.uniquePlaylist[i]
+                    s3.copyObject(fileParams, function (err, data) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log('Inserted');
+                        }
+                    });
+                })
+            }
+            schedule['mediaNames'] = mediaNames
+            schedule['playlistMedia'] = playlistMedia
+            console.log(schedule)
+            fs.createWriteStream('uploads/'+ group + '_' + schedule.scheduleName + '_schedule.json');
+            fs.writeFileSync('uploads/'+ group + '_' + schedule.scheduleName + '_schedule.json', JSON.stringify(schedule))
+            var fileContent = fs.readFileSync('uploads/'+ group + '_' + schedule.scheduleName + '_schedule.json');
+            const params = {
+                Bucket: 'maventest1',
+                Key: group + '/schedules/' + schedule.scheduleName + '/' + schedule.scheduleName + '_schedule.json', 
+                Body: fileContent
+            };
 
-    // Uploading files to the bucket
-    s3.upload(params, function(err, data) {
-        if (err) {
-            throw err;
-        }
-        console.log(`File uploaded successfully. ${data.Location}`);
-    });
+            // Uploading files to the bucket
+            s3.upload(params, function(err, data) {
+                if (err) {
+                    throw err;
+                }
+                console.log(`File uploaded successfully. ${data.Location}`);
+            });
+        })
 };
 
 const uploadConfig = (file, playlistName, group) => {
+    var playlistSet = []
+    for (let i = 0; i < file.playlist.length; i++){
+        playlistSet.push(file.playlist[i][0])
+    }
+    playlistSet = Array.from(new Set(playlistSet))
+    for (let i = 0; i < playlistSet.length; i++){
+        var filename = group + '/media/' + playlistSet[i]
+        const fileParams = {
+            Bucket: 'maventest1',
+            CopySource: 'maventest1/' + filename,
+            Key: group + '/' + playlistName + '/' + playlistSet[i],
+        } 
+        s3.copyObject(fileParams, function (err, data) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log('Inserted');
+            }
+        });
+    }
+    file['mediaNames'] = playlistSet
     fs.createWriteStream('uploads/'+ group + '_' + playlistName + '_config.json');
     fs.writeFileSync('uploads/'+ group + '_' + playlistName + '_config.json', JSON.stringify(file))
     var fileContent = fs.readFileSync('uploads/'+ group + '_' + playlistName + '_config.json');
     const params = {
-        Bucket: 'maventest',
+        Bucket: 'maventest1',
         Key: group + '/' + playlistName + '/' + playlistName + '_config.json', 
         Body: fileContent
     };
@@ -40,27 +118,6 @@ const uploadConfig = (file, playlistName, group) => {
         }
         console.log(`File uploaded successfully. ${data.Location}`);
     });
-
-    var playlistSet = []
-    for (let i = 0; i < file.playlist.length; i++){
-        playlistSet.push(file.playlist[i][0])
-    }
-    playlistSet = Array.from(new Set(playlistSet))
-    for (let i = 0; i < playlistSet.length; i++){
-        var filename = group + '/media/' + playlistSet[i]
-        const fileParams = {
-            Bucket: 'maventest',
-            CopySource: 'maventest/' + filename,
-            Key: group + '/' + playlistName + '/' + playlistSet[i],
-        } 
-        s3.copyObject(fileParams, function (err, data) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log('Inserted');
-            }
-        });
-    }
 };
 
 const uploadFile = (files, group) => {
@@ -69,7 +126,7 @@ const uploadFile = (files, group) => {
 
     // Setting up S3 upload parameters
     const params = {
-        Bucket: 'maventest',
+        Bucket: 'maventest1',
         Key: group + '/media/' + files.originalname, 
         Body: fileContent
     };
@@ -85,7 +142,7 @@ const uploadFile = (files, group) => {
 
 const getFiles = (group, req, res, callback) => {
     const params = {
-        Bucket: 'maventest',
+        Bucket: 'maventest1',
         Prefix: group + '/media/', 
         Delimiter: '/'
     };
@@ -104,10 +161,10 @@ const getFiles = (group, req, res, callback) => {
     })
 }
 
-const getSchedules = (group, req, res, piState, pi, callback) => {
+const getFilesandURL = (group, req, res, callback) => {
     const params = {
-        Bucket: 'maventest',
-        Prefix: group + '/schedules/', 
+        Bucket: 'maventest1',
+        Prefix: group + '/media/', 
         Delimiter: '/'
     };
     s3.listObjects(params, function(err, data) {
@@ -116,10 +173,38 @@ const getSchedules = (group, req, res, piState, pi, callback) => {
             return 'There was an error viewing your album: ' + err.message
         } else{
             //console.log(data)
-            var schedules = []
+            var filenames = []
+            var url = []
             data.Contents.forEach(function(obj){
-                schedules.push(obj.Key.split('/').at(-1).replace('_schedule.json', ''))
+                var fileParams = {
+                    Bucket: 'maventest1',
+                    Key: obj.Key,
+                    ResponseContentType: mime.lookup(obj.Key)
+                }
+                url.push(s3.getSignedUrl('getObject', fileParams))
+                filenames.push(obj.Key.split('/').at(-1))
             })
+            callback(filenames, url, req, res)
+        }
+    })
+}
+
+const getSchedules = (group, req, res, piState, pi, callback) => {
+    const params = {
+        Bucket: 'maventest1',
+        Prefix: group + '/schedules/', 
+        Delimiter: '/'
+    };
+    s3.listObjectsV2(params, function(err, data) {
+        if (err) {
+            console.log(err.message)
+            return 'There was an error viewing your album: ' + err.message
+        } else{
+            //console.log(data)
+            var schedules = []
+            for (var i = 0; i < data.CommonPrefixes.length; i++){
+                schedules.push(data.CommonPrefixes[i].Prefix.split('/')[2])
+            }
             callback(schedules, req, res, piState, pi)
         }
     })
@@ -141,7 +226,7 @@ var getObject = function(params) {
 
 const getPlaylists = (group, req, res, callback) => {
     const params = {
-        Bucket: 'maventest',
+        Bucket: 'maventest1',
         Prefix: group + '/', 
         Delimiter: '/'
     }
@@ -150,16 +235,12 @@ const getPlaylists = (group, req, res, callback) => {
             console.log(err.message)
             return 'There was an error viewing your album: ' + err.message
         } else{
-            //console.log(data)
-            // data.CommonPrefixes.forEach(function(obj){
-            //     filenames.push(obj.Key.split('/').at(-1))
-            // })
             promises = []
             for (var i = 0; i < data.CommonPrefixes.length; i++){
                 var name = data.CommonPrefixes[i].Prefix.split('/')[1]
                 if ((name != 'media') && (name != 'schedules')){
                     var configParams = {
-                        Bucket: 'maventest',
+                        Bucket: 'maventest1',
                         Key: group + '/' + name + '/' + name + '_config.json', 
                     }
                     promises.push(getObject(configParams))
@@ -171,6 +252,8 @@ const getPlaylists = (group, req, res, callback) => {
                     for (var i in results){
                         var data = results[i].Body.toString()
                         config.push(data)
+                        var playlistConfig = JSON.parse(data)
+
                     }
                     callback(config, req, res)
                 })
@@ -178,9 +261,116 @@ const getPlaylists = (group, req, res, callback) => {
     })
 }
 
+const getPlaylistsandURL = (group, req, res, callback) => {
+    const params = {
+        Bucket: 'maventest1',
+        Prefix: group + '/', 
+        Delimiter: '/'
+    }
+    s3.listObjectsV2(params, function(err, data) {
+        if (err) {
+            console.log(err.message)
+            return 'There was an error viewing your album: ' + err.message
+        } else{
+            promises = []
+            for (var i = 0; i < data.CommonPrefixes.length; i++){
+                var name = data.CommonPrefixes[i].Prefix.split('/')[1]
+                if ((name != 'media') && (name != 'schedules')){
+                    var configParams = {
+                        Bucket: 'maventest1',
+                        Key: group + '/' + name + '/' + name + '_config.json', 
+                    }
+                    promises.push(getObject(configParams))
+                }
+            }
+            var config = []
+            Promise.all(promises)
+                .then(function(results){
+                    var uniqueMedia = []
+                    var uniquePlaylist = {}
+                    for (var i in results){
+                        var data = JSON.parse(results[i].Body.toString())
+                        config.push(data)
+                        var playlistMedia = data.playlist
+                        for (var j in playlistMedia){
+                            uniqueMedia.push(playlistMedia[j][0])
+                            uniquePlaylist[playlistMedia[j][0]] = data.playlistName
+                        }
+                    }
+                    uniqueMedia = Array.from(new Set(uniqueMedia))
+                    urls = '{'
+                    for (var i in uniqueMedia){
+                        var fileParams = {
+                            Bucket: 'maventest1',
+                            Key: group + '/' + uniquePlaylist[uniqueMedia[i]] + '/' + uniqueMedia[i],
+                            ResponseContentType: mime.lookup(uniqueMedia[i])
+                        }
+                        //urls[uniqueMedia[i]] = s3.getSignedUrl('getObject', fileParams)
+                        urls += '"' + uniqueMedia[i] + '":"' + s3.getSignedUrl('getObject', fileParams) + '",'
+                    }
+                    urls = urls.slice(0, -1) + '}'
+                    callback(config, urls, req, res)
+                })
+        }
+    })
+}
+
+const getSchedulesandURL = (group, req, res, callback) => {
+    const params = {
+        Bucket: 'maventest1',
+        Prefix: group + '/schedules/', 
+        Delimiter: '/'
+    };
+    s3.listObjectsV2(params, function(err, data) {
+        if (err) {
+            console.log(err.message)
+            return 'There was an error viewing your album: ' + err.message
+        } else{
+            var schedules = []
+            var promises = []
+            for (var i = 0; i < data.CommonPrefixes.length; i++){
+                var schedule = data.CommonPrefixes[i].Prefix.split('/')[2]
+                var configParams = {
+                    Bucket: 'maventest1',
+                    Key: group + '/schedules/' + schedule + '/' + schedule + '_schedule.json', 
+                }
+                promises.push(getObject(configParams))
+            }
+
+            Promise.all(promises)
+                .then(function(results){
+                    var uniqueMedia = []
+                    var uniqueSchedule = {}
+                    var schedules = []
+                    for (var i in results){
+                        var data = JSON.parse(results[i].Body.toString())
+                        schedules.push(data)
+                        console.log(data)
+                        for (var j in Object.keys(data['mediaNames'])){
+                            uniqueMedia.push(Object.keys(data['mediaNames'])[j])
+                            uniqueSchedule[Object.keys(data['mediaNames'])[j]] = [data['scheduleName'], data['mediaNames'][Object.keys(data['mediaNames'])[j]]]
+                        }
+                    }
+                    uniqueMedia = Array.from(new Set(uniqueMedia))
+                    urls = '{'
+                    for (var i in uniqueMedia){
+                        var fileParams = {
+                            Bucket: 'maventest1',
+                            Key: group + '/schedules/' + uniqueSchedule[uniqueMedia[i]][0] + '/' + uniqueSchedule[uniqueMedia[i]][1] + '/' + uniqueMedia[i],
+                            ResponseContentType: mime.lookup(uniqueMedia[i])
+                        }
+                        urls += '"' + uniqueMedia[i] + '":"' + s3.getSignedUrl('getObject', fileParams) + '",'
+                    }
+                    urls = urls.slice(0, -1) + '}'
+                    callback(schedules, urls, req, res)
+                })
+        }
+    })
+}
+
 const deletePlaylist = (playlist, group) => {
     const params = {
-        Bucket: 'maventest',
+        Bucket: 'maventest1',
         Prefix: group + '/' + playlist + '/', 
         Delimiter: '/'
     };
@@ -189,7 +379,7 @@ const deletePlaylist = (playlist, group) => {
             return 'There was an error viewing your album: ' + err.message
         }else{
             const delParams = {
-                Bucket: 'maventest',
+                Bucket: 'maventest1',
                 Delete: {Objects: []}, 
             };
             console.log(data.Contents,"<<<all content");
@@ -207,7 +397,7 @@ const deletePlaylist = (playlist, group) => {
 
 const getPlaylist = (playlist, group) => {
     const params = {
-        Bucket: 'maventest',
+        Bucket: 'maventest1',
         Prefix: group + '/' + playlist + '/', 
         Delimiter: '/'
     };
@@ -225,7 +415,7 @@ const getPlaylist = (playlist, group) => {
             data.Contents.forEach(function(obj,index){
                 console.log(obj.Key,"<<<file path")
                 const keyParams = {
-                    Bucket: 'maventest',
+                    Bucket: 'maventest1',
                     Key: obj.Key, 
                 };
                 var file = fs.createWriteStream(dir + obj.Key.split('/').at(-1));
@@ -249,8 +439,9 @@ const getPlaylist = (playlist, group) => {
 
 const deleteFile = (filename, group) => {
     const params = {
-        Bucket: 'maventest',
-        Key: group + '/media/' + filename, 
+        Bucket: 'maventest1',
+        Key: group + '/media/' + filename
+        // Delete: {Objects: [{}]},  
     };
 
     s3.deleteObject(params, function(err, data) {
@@ -274,4 +465,7 @@ module.exports = {
     getPlaylists: getPlaylists,
     uploadSchedule: uploadSchedule,
     getSchedules: getSchedules,
+    getFilesandURL: getFilesandURL,
+    getPlaylistsandURL: getPlaylistsandURL,
+    getSchedulesandURL: getSchedulesandURL,
 }

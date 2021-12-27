@@ -90,5 +90,6 @@ router.route('/createSchedule')
             "orientation": req.body.orientation,
         }
         uploadSchedule(schedule, req.user.group)
+        res.send('success')
     })
 module.exports = router

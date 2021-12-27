@@ -24,6 +24,7 @@
             label.style.display = 'block'
         }
         document.getElementById('screenTable').style.display = 'block'
+        document.getElementById('submitButton').style.display = 'block'
         document.getElementById('screenTable').border = '1'
         // $('#screenTable').append("<p>Please Choose Your Files To Play</p>")
         // for (var i = 0; i < length; i++){
@@ -102,8 +103,9 @@
                 orientation: orientation,
                 playlistName: playlistName,
                 aspectRatio: aspectRatio
-            }, (data)=>{
-                $('#playlistResult').html(data)
+            }, function(data){
+                
+                //$('#playlistResult').html(data)
             })
         })
     })
@@ -162,7 +164,7 @@
         </tfoot>
     </table>
     <hr>
-    <input type = "submit" value = "Create"/>
+    <input type = "submit" value = "Create" id='submitButton' style='display:none'/>
     </form>
     <span id="playlistResult"></span>
     </center>

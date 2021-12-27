@@ -1,0 +1,99 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    var urls = []
+    var filenames = []
+    function showFile(i){
+        var image = document.getElementById('image')
+        var vidSrc = document.getElementById('vidSrc')
+        var video = document.getElementById('video')
+        var videoArea = document.getElementById('videoArea')
+        var imageArea = document.getElementById('imageArea')
+        image.setAttribute('src', '')
+        vidSrc.setAttribute('src', '')
+        $('.title').empty()
+        $('.title').append('<h4>' + filenames[i] + '</h4>')
+        if (filenames[i].match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
+            imageArea.style.display = 'block'
+            videoArea.style.display = 'none'
+            image.onload = function(){
+                image.setAttribute('width', 250)
+                image.setAttribute('height', image.height / image.width * 250)
+            }
+            image.setAttribute('src', urls[i])
+        }else{
+            videoArea.style.display = 'block'
+            imageArea.style.display = 'none'
+            vidSrc.setAttribute('src', urls[i])
+            vidSrc.setAttribute('type', "video/" + filenames[i].split('.')[1])
+            video.load()
+            video.play()
+            $('#video').on('loadedmetadata', function() {
+                video.setAttribute('width', 250)
+                video.setAttribute('height', this.videoHeight / this.videoWidth * 250)
+            });
+        }
+    }
+    function delFile(i){
+        console.log(filenames[parseInt(i)])
+        console.log(filenames)
+        $.post('/files/delete', {
+            filename: filenames[i],
+        }, (data)=>{
+
+        })
+    }
+    $(document).ready(()=>{
+        urls = '<%- url %>'.split(',')
+        filenames = '<%- filenames %>'.split(',')
+        var mediaFiles = document.getElementsByClassName('mediaFiles')
+        var delButtons = document.getElementsByClassName('delButtons')
+        for (var i = 0; i < mediaFiles.length; i++){
+            mediaFiles[i].setAttribute('onclick', 'showFile(' + i +')')
+            mediaFiles[i].id = 'file_' + i
+            delButtons[i].id = 'del_' + i
+            delButtons[i].setAttribute('onclick', 'delFile(' + i +')')
+        }
+    })  
+</script>
+ 
+<html>
+<body>
+<h1>Media</h1>
+<hr>
+
+<table border='1'>
+    <thead>
+        <th colspan="2">
+            Click to preview media:
+        </th>
+    </thead>
+    <tbody>
+        <% for (var i = 0; i < filenames.length; i++) { %>
+            <tr>
+                <td>
+                    <p class='mediaFiles'><%= filenames[i] %></p>
+                </td>
+                <td>
+                    <input type='button' onclick="delFile()" class='delButtons' value='Delete'> 
+                </td>
+            </tr>
+        <% }; %>
+    </tbody>
+</table>
+
+<div id ='videoArea' style='display:none'>
+    <h3>Video: </h3>
+    <video id='video'>
+        <source id='vidSrc'>
+    </video>
+    <h4 class='title'></h4>
+</div>
+
+<div id ='imageArea' style='display:none'>
+    <h3>Image: </h3>
+    <img id='image'>
+    <h4 class='title'></h4>
+</div>
+
+</body>
+</html>
