@@ -17,7 +17,7 @@
         $('.title').empty()
         $('.title').append('<h4>' + filename + '</h4>')
         if (filename.match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
-            imageArea.style.display = 'block'
+            imageArea.style.display = 'inline'
             videoArea.style.display = 'none'
             image.onload = function(){
                 image.setAttribute('width', 250)
@@ -25,7 +25,7 @@
             }
             image.setAttribute('src', urls[filename])
         }else{
-            videoArea.style.display = 'block'
+            videoArea.style.display = 'inline'
             imageArea.style.display = 'none'
             vidSrc.setAttribute('src', urls[filename])
             vidSrc.setAttribute('type', "video/" + filename.split('.')[1])

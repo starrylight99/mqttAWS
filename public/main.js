@@ -26,7 +26,7 @@ jQuery(document).ready(function($){
 		this.modalBody = this.modal.find('.body'); 
 		this.modalBodyBg = this.modal.find('.body-bg'); 
 		this.modalMaxWidth = 800;
-		this.modalMaxHeight = 600;
+		this.modalMaxHeight = 1000;
 
 		this.animating = false;
 
@@ -130,8 +130,8 @@ jQuery(document).ready(function($){
 			line += '</table></td></tr>'
 		}
 		line += '</tbody></table>'
-		line += '<div id ="imageArea" style="display:none"><h3>Image: </h3><img id="image"><h4 class="title"></h4></div>'
-		line += '<div id ="videoArea" style="display:none"><h3>Video: </h3><video id="video" muted><source id="vidSrc"></video><h4 class="title"></h4</div>'
+		line += '<div id ="imageArea" style="display:none; "><h3>Image: </h3><img id="image"><h4 class="title"></h4></div>'
+		line += '<div id ="videoArea" style="display:none; "><h3>Video: </h3><video id="video" muted><source id="vidSrc"></video><h4 class="title"></h4</div>'
 		
 		$('.event-info').html(line)
 		//this.modalBody.find('.event-info')[0].html(line)

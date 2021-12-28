@@ -1,7 +1,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
-    var count = 1
-    function showFilenames(){
+    var count = [1]
+    var twoTables = false
+    function showFilenames(pos){
         var table = document.getElementById('chooseTable')
         tr = table.getElementsByTagName('tr')
         for (let i = 1; i < tr.length; i++){
@@ -11,69 +12,82 @@
             radio.setAttribute('id', 'option' + i)
             radio.setAttribute('value', filename)
         }
+        document.getElementById('chooseMedia').setAttribute('class', pos)
         var popup = document.getElementById('chooseMedia')
         popup.style.display = 'block'
         
     }
     function handleScreenConfig(){
         var length = $('#length').val()
-        if (length == 1){
-            var option = document.getElementById('splitScreen')
-            option.style.display = 'block'
-            var label = document.getElementById('splitLabel')
-            label.style.display = 'block'
+        if (length != 1 && document.getElementById('splitScreen').checked){
+            document.getElementById('splitScreen').checked = false
+            alert("Split-screen is only for single screens!")
+            return
         }
-        document.getElementById('screenTable').style.display = 'block'
+        console.log(document.getElementById('splitScreen').checked)
+        console.log($('#orientation').val().toUpperCase())
+        if (document.getElementById('splitScreen').checked && $('#orientation').val().toUpperCase() == "PORTRAIT"){
+            document.getElementById('screenTable1').style.display = 'block'
+            document.getElementById('topScreen').textContent = "Top Playlist"
+            document.getElementById('screenTable1').border = '1'
+            count.push(1)
+            twoTables = true
+        }
+        document.getElementById('screenTable0').style.display = 'block'
         document.getElementById('submitButton').style.display = 'block'
-        document.getElementById('screenTable').border = '1'
-        // $('#screenTable').append("<p>Please Choose Your Files To Play</p>")
-        // for (var i = 0; i < length; i++){
-        //     var addLine = "<tr>" 
-        //     for (var j = 0; j < width; j++){
-        //         count.push(1)
-        //         addLine += "<td> <table class='screen' id='" + (i * width + j) + "'> <thead> <tr><h3>Screen " + (i * width + j + 1) + "</h3></tr> </head> </table> " + "<input type='button' onclick='showFilenames(" + (i * width + j) + ")' value='Add new entry'/> </td>"
-        //     }
-        //     addLine += "</tr>"
-        //     $('#screenTable tbody').append(addLine)
-        // }
+        document.getElementById('screenTable0').border = '1'
     }
-    function removeRow(){
-        $('#screenTable tbody tr:last').remove();
+    function removeRow(pos){
+        if (count[pos] > 1){
+            count[pos]--
+        }
+        $('#screenTable' + pos + ' tbody tr:last').remove();
     }
     $(document).ready(()=>{
         $('#chooseMedia').submit((event) => {
             event.preventDefault()
             var chosen = document.querySelector('input[name="file"]:checked').value
             var popup = document.getElementById('chooseMedia')
-            var addLine = "<tr> <td>" + count + ". </td> <td>" + chosen
+            var pos = popup.getAttribute('class')
+            console.log(pos)
+            console.log(parseInt(pos))
+            console.log(count)
+            var addLine = "<tr> <td>" + count[parseInt(pos)] + ". </td> <td>" + chosen
             if (chosen.match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
-                var id = count - 1
-                addLine += "</td> <td> <input type='number' step='0.1' class='duration' id='dur_" + id + "' placeholder='Duration (in sec)' required />"
+                var id = count[parseInt(pos)] - 1
+                addLine += "</td> <td> <input type='number' step='0.1' class='duration' id='dur_" + pos + '_' + id + "' placeholder='Duration (in sec)' required />"
             }
             addLine += "</td></tr>"
-            count++
-            $('#screenTable tbody').append(addLine)
+            count[parseInt(pos)]++
+            $('#screenTable' + pos + ' tbody').append(addLine)
             popup.style.display = 'none'
         })
         $('#playlist').submit((event)=>{
             event.preventDefault()
 
-            var playlist = []
+            var playlists = []
             var screens = $('#length').val()
-            var screenTable = document.getElementById('screenTable')
-            var entries = screenTable.getElementsByTagName('tr')
-            console.log(entries)
-            for (var i = 1; i < entries.length-1; i++){
-                var td = entries[i].getElementsByTagName('td')
-                console.log(td)
-                playlist.push([td[1].innerText])
+            for (var j = 0; j < 2; j++){
+                playlists.push([])
+                var screenTable = document.getElementById('screenTable' + j)
+                var entries = screenTable.getElementsByTagName('tr')
+                console.log(entries)
+                for (var i = 1; i < entries.length-1; i++){
+                    var td = entries[i].getElementsByTagName('td')
+                    console.log(td)
+                    playlists[j].push([td[1].innerText])
+                }
+                
+                console.log(playlists[i])
             }
             var imgs = document.getElementsByClassName('duration')
             for (var i = 0; i < imgs.length; i++){
                 var id = imgs[i].getAttribute('id')
-                playlist[id.split('_')[1]].push(parseInt($('#'+id).val()))
+                console.log(id)
+                console.log(playlists[j])
+                playlists[parseInt(id.split('_')[1])][parseInt(id.split('_')[2])].push(parseInt($('#'+id).val()))
             }
-            console.log(playlist)
+            
 
             var checkedScreen = false
             if (document.getElementById('splitScreen').checked){
@@ -101,11 +115,12 @@
             var playlistName = $('#playlistName').val()
 
             $.post('/files/createPlaylist', {
-                playlist: playlist,
+                playlists: playlists,
                 screens: screens,
                 orientation: orientation,
                 playlistName: playlistName,
-                aspectRatio: aspectRatio
+                aspectRatio: aspectRatio,
+                splitScreen: twoTables
             }, function(data){
                 location.reload()
                 //$('#playlistResult').html(data)
@@ -151,21 +166,36 @@
         <option value="landscape">Landscape</option>
         <option value="portrait">Portrait</option>
     </select>
+    <input type="checkbox" id="splitScreen" value=1 ><label for="splitScreen" id='splitLabel'>Split-Screen?</label>
     <br>
-    <input type="checkbox" style='display:none' id="splitScreen" value=1 ><label for="splitScreen" style='display:none' id='splitLabel'>Split-Screen?</label>
+    
     <hr>
     
-    <table id='screenTable' style='display:none'>
+    <table id='screenTable0' style='display:none'>
         <thead>
-            <th colspan="3">Screen</th>
+            <th colspan="3" id="topScreen">Screen</th>
         </thead>
         <tbody>
             
         </tbody>
         <tfoot>
             <tr><td colspan="3">
-                <input type='button' onclick='showFilenames()' value='Add new entry'/> 
-                <input type='button' onclick='removeRow()' value='Remove Last Entry'/>
+                <input type='button' onclick='showFilenames(0)' value='Add new entry'/> 
+                <input type='button' onclick='removeRow(0)' value='Remove Last Entry'/>
+            </td> </tr>
+        </tfoot>
+    </table>
+    <table id='screenTable1' style='display:none'>
+        <thead>
+            <th colspan="3" id="botScreen">Bottom Playlist</th>
+        </thead>
+        <tbody>
+            
+        </tbody>
+        <tfoot>
+            <tr><td colspan="3">
+                <input type='button' onclick='showFilenames(1)' value='Add new entry'/> 
+                <input type='button' onclick='removeRow(1)' value='Remove Last Entry'/>
             </td> </tr>
         </tfoot>
     </table>

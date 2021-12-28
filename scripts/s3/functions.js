@@ -83,8 +83,13 @@ const uploadSchedule = (schedule, group) => {
 
 const uploadConfig = (file, playlistName, group) => {
     var playlistSet = []
-    for (let i = 0; i < file.playlist.length; i++){
-        playlistSet.push(file.playlist[i][0])
+    console.log(file)
+    for (let j = 0; j < 2; j++){
+        if (file.playlists[j] != undefined){
+            for (let i = 0; i < file.playlists[j].length; i++){
+                playlistSet.push(file.playlists[j][i][0])
+            }
+        }
     }
     playlistSet = Array.from(new Set(playlistSet))
     for (let i = 0; i < playlistSet.length; i++){

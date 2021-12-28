@@ -7,7 +7,6 @@
     var playlistNames = []
     var playlistAR = []
     var playlistCount = []
-    // var dayCount = []
     var totalScreensUsage = []
     var validated = []
     const week = [
@@ -80,21 +79,23 @@
             var ar = playlistAR[parseInt($('#playlistChoice_' + lineCount + '_' + i).val())]
             var curr_y = 0
             draw_block.fillStyle = CSS_COLOR_NAMES[i % CSS_COLOR_NAMES.length]
-            if (ar[1] == 8){
-                if (split){
-                    curr_y = ar[1] * 5
-                    split = false
-                    draw_block.fillRect(split_x, curr_y, ar[0] * 5, ar[1] * 5)
-                }else{
-                    split_x = curr_x
-                    split = true
-                    draw_block.fillRect(curr_x, curr_y, ar[0] * 5, ar[1] * 5)
-                    curr_x += ar[0] * 5
-                }
-            }else{
-                draw_block.fillRect(curr_x, curr_y, ar[0] * 5, ar[1] * 5)
-                curr_x += ar[0] * 5
-            }
+            // if (ar[1] == 8){
+            //     if (split){
+            //         curr_y = ar[1] * 5
+            //         split = false
+            //         draw_block.fillRect(split_x, curr_y, ar[0] * 5, ar[1] * 5)
+            //     }else{
+            //         split_x = curr_x
+            //         split = true
+            //         draw_block.fillRect(curr_x, curr_y, ar[0] * 5, ar[1] * 5)
+            //         curr_x += ar[0] * 5
+            //     }
+            // }else{
+            //     draw_block.fillRect(curr_x, curr_y, ar[0] * 5, ar[1] * 5)
+            //     curr_x += ar[0] * 5
+            // }
+            draw_block.fillRect(curr_x, curr_y, ar[0] * 5, ar[1] * 5)
+            curr_x += ar[0] * 5
         }
         if (curr_x > aspect_ratio[0]*5*totalScreens){
             for (var i = 0; i < playlistCount[lineCount]; i++){
@@ -112,18 +113,7 @@
         }
         validated[lineCount] = true
     }
-    // function addDay(lineCount){
-    //     var addLine = "<tr><td><select id='dayChoice_" + lineCount + '_' + dayCount[lineCount] + "'>"
-    //     addLine += "<option value='' id='day_" + lineCount + '_' + dayCount[lineCount]++ + "'disabled selected>Select Day</option>"
-    //     for (var i in week){
-    //         addLine += "<option value='" + week[i] + "'>" + week[i] + "</option>"
-    //     }
-    //     addLine += "</td></tr>"
-    //     if (dayCount[lineCount] == 7){
-    //         document.getElementById('dayButton_' + lineCount).disabled = true
-    //     }
-    //     $("#dayblock_" + lineCount + " tbody").append(addLine)
-    // }
+    
     function addEntry(){
         playlistCount.push(0)
         // dayCount.push(0)
@@ -174,7 +164,12 @@
                 if (orientations[i].textContent.split(' ')[1].toUpperCase() == orientation.toUpperCase()){
                     playlistNames.push(names[i].textContent)
                     var arLine = aspectRatios[i].textContent.replace('Aspect Ratio: ', '').split(' x ')
-                    playlistAR.push([parseInt(arLine[0]), parseInt(arLine[1])])
+                    if (arLine[1] == '8'){
+                        playlistAR.push([parseInt(arLine[0]), parseInt(arLine[1]) * 2])
+                    }else{
+                        playlistAR.push([parseInt(arLine[0]), parseInt(arLine[1])])
+                    }
+                    
                 }else{
                     names[i].style.display = "none"
                     info[i].style.display = "none"
@@ -212,15 +207,8 @@
                 $("input:checkbox[class=dayblock_" + i + "]:checked").each(function(){
                     days.push($(this).val());
                 })
-                // for (var j = 0; j < dayCount[i]; j++){
-                //     days.push($('#dayChoice_' + i + '_' + j).val())
-                // }
+
                 for (var j in schedule){
-                    console.log('a <= d, c <= b')
-                    console.log('a: ' + start)
-                    console.log('b: ' + end)
-                    console.log('c: ' + schedule[j].startTime)
-                    console.log('d: ' + schedule[j].endTime)
                     if (days.filter(value => schedule[j].days.includes(value)).length > 0){
                         if (start <= schedule[j].endTime && schedule[j].startTime <= end){
                             
@@ -235,8 +223,7 @@
                     "playlists": playlists,
                     "days": days
                 })
-                console.log(schedule)
-                console.log(i)
+
             }
             uniquePlaylist = Array.from(new Set(uniquePlaylist))
             var scheduleName = $('#scheduleName').val()
@@ -278,8 +265,25 @@
                 <div class='playlistInfo' style="display:none; border: 2px solid black">
                     <h5>Playlist:</h5>
                     <ol>
-                        <% for (var j = 0; j < config[i].playlist.length; j++) { %>
-                            <li><%= config[i].playlist[j] %></li>
+                        <% if (config[i].playlists.length == 2) { %>
+                            <% for (var j = 0; j < config[i].playlists.length; j++) { %>
+                                <% if (j == 0) { %>
+                                    <h6>Top Playlist:</h6>
+                                <% } else { %>
+                                    <h6>Bottoms Playlist:</h6>
+                                <% }; %>
+                                <% for (var k = 0; k < config[i].playlists[j].length; k++) { %>
+                                    
+                                    <li><%= config[i].playlists[j][k] %></li>
+                        
+                                <% }; %>
+                            <% }; %>
+                        <% }else{ %>
+                            <% for (var k = 0; k < config[i].playlists[0].length; k++) { %>
+                                    
+                                <li><%= config[i].playlists[0][k] %></li>
+                    
+                            <% }; %>
                         <% }; %>
                     </ol>
                     <h5 class='playlistScreens'>Number of Screens used: <%= config[i].screens %></h5>

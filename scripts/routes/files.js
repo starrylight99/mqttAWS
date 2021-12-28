@@ -64,9 +64,10 @@ router.route('/createPlaylist')
         var test = {
             "playlistName": req.body.playlistName,
             "aspectRatio": req.body.aspectRatio,
-            "playlist": req.body.playlist,
+            "playlists": req.body.playlists,
             "screens": req.body.screens,
             "orientation": req.body.orientation,
+            "splitScreen": req.body.splitScreen,
         }
         uploadConfig(test, req.body.playlistName, req.user.group)
         res.send('success')
@@ -77,6 +78,7 @@ router.route('/schedule')
         getPlaylists(req.user.group, req, res, function(config, req, res) {
             for (var i in config){
                 config[i] = JSON.parse(config[i])
+                console.log(config[i]['playlists'])
             }
             res.render('schedule', {
                 authenticated: req.isAuthenticated(),

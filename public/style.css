@@ -393,7 +393,7 @@
     z-index: 3;
     top: 0;
     right: 0;
-    height: 100%;
+    height: 150%;
     width: 100%;
     visibility: hidden;
     /* Force Hardware acceleration */
