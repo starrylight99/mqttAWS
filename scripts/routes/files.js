@@ -30,6 +30,7 @@ router.route('/deleteFiles')
     .post(checkAuthenticated, async(req, res, next) => {
         var delMedia = req.body.delMedia
         deleteFiles(delMedia, req.user.group)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         res.send('success')
     })
     
@@ -38,6 +39,7 @@ router.route('/deletePlaylists')
         console.log(req.body)
         var delPlay = req.body.delPlay
         deleteFolders(delPlay, req.user.group, false)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         res.send('success')
     })
 
@@ -45,6 +47,7 @@ router.route('/deleteSchedules')
     .post(checkAuthenticated, async(req, res, next) => {
         var delSched = req.body.delSched
         deleteFolders(delSched, req.user.group, true)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         res.send('success')
     })
 

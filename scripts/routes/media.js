@@ -6,6 +6,7 @@ var router = express.Router()
 router.route('/')
     .get(checkAuthenticated, (req,res) => {
         getFilesandURL(req.user.group, req, res, function(filenames, url, req, res) {
+            console.log(filenames)
             res.render('media', {
                 authenticated: req.isAuthenticated(),
                 previousPage: "/command",
