@@ -5,6 +5,12 @@ const { checkAuthenticated } = require('../account/permissions')
 var router = express.Router()
 
 router.route('/upload')
+    .get(checkAuthenticated, (req, res) => {
+        res.render('upload', {
+            authenticated: req.isAuthenticated(),
+            previousPage: "/"
+        })
+    })
     .post(checkAuthenticated, upload.array('file'), async(req, res) => {
         const files = req.files
         console.log("upload: ", req.user)
@@ -17,23 +23,14 @@ router.route('/upload')
         for (let i = 0; i < files.length; i++){
             uploadFile(files[i], req.user.group)
         }
-        res.render('upload', {
-            authenticated: req.isAuthenticated(),
-            previousPage: "/command"
-        })
-    })
-
-    
-router.route('/retrieve')
-    .post(checkAuthenticated, async(req, res, next) => {
-        var playlist = req.body.playlist
-        getPlaylist(playlist, req.user.group)
+        res.redirect('/upload')
     })
 
 router.route('/deleteFiles')
     .post(checkAuthenticated, async(req, res, next) => {
         var delMedia = req.body.delMedia
         deleteFiles(delMedia, req.user.group)
+        res.send('success')
     })
     
 router.route('/deletePlaylists')
@@ -41,12 +38,14 @@ router.route('/deletePlaylists')
         console.log(req.body)
         var delPlay = req.body.delPlay
         deleteFolders(delPlay, req.user.group, false)
+        res.send('success')
     })
 
 router.route('/deleteSchedules')
     .post(checkAuthenticated, async(req, res, next) => {
         var delSched = req.body.delSched
         deleteFolders(delSched, req.user.group, true)
+        res.send('success')
     })
 
 router.route('/playlist')
@@ -70,6 +69,7 @@ router.route('/createPlaylist')
             "orientation": req.body.orientation,
         }
         uploadConfig(test, req.body.playlistName, req.user.group)
+        res.send('success')
     })
 
 router.route('/schedule')

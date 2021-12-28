@@ -10,7 +10,7 @@ const { getSchedules } = require('../s3/functions')
 router.route('/')
     .get(checkAuthenticated, async(req, res) => {
         piState = await getPiState()
-        getSchedules(req.user.group, req, res, piState, pi, function(schedules, req, res, piState, pi) {
+        getSchedules(req.user.group, req, res, piState, pi, true, function(schedules, req, res, piState, pi) {
             console.log(schedules)
             console.log(piState);
             res.render('devices', { 

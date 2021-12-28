@@ -40,7 +40,7 @@
         $.post('/files/delete', {
             filename: filenames[i],
         }, (data)=>{
-
+            location.reload()
         })
     }
     $(document).ready(()=>{
@@ -62,7 +62,7 @@
             $.post('/files/deleteFiles', {
                 delMedia: mediaList,
             }, (data)=>{
-
+                location.reload()
             })
         })
     })  
