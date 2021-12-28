@@ -1,6 +1,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
-    function deleteSchedule(e){
+    function updateSchedule(e, value){
         console.log(e)
         console.log(e.id)
         var i = e.id.split('_')[1]
@@ -8,13 +8,13 @@
         console.log('filename_' + i + '_' + j)
         var schedule = document.getElementById('filename_' + i + '_' + j).textContent
         var id = document.getElementById('id_' + i).textContent
-        $.post('/mqtt/delete', {
+        $.post('/mqtt/update', {
             schedule: schedule,
-            id: id
+            id: id,
+            value: value
         }, (data)=>{
             $('#tempResult').html(data)
         })
-        
     }
     function sendSchedule(e){
         var i = e.id.split('_')[1]
@@ -34,6 +34,9 @@
             td[0].setAttribute('id', 'id_' + i)
             var scheduleRows = idRows[i].getElementsByClassName('schedule')
             var delButtons = idRows[i].getElementsByClassName('delButton')
+            var runButtons = idRows[i].getElementsByClassName('runButton')
+            var stopButtons = idRows[i].getElementsByClassName('stopButton')
+            
             idRows[i].getElementsByTagName('select')[0].setAttribute('id', 'scheduleOptions_' + i)
             idRows[i].getElementsByClassName('sendButton')[0].setAttribute('id', 'sendButton_' + i)
 
@@ -45,6 +48,8 @@
                 var td = scheduleRows[j].getElementsByTagName('td')
                 td[0].setAttribute('id', 'filename_' + i + '_' + j)
                 delButtons[j].setAttribute('id', 'button_' + i + '_' + j)
+                runButtons[j].setAttribute('id', 'runButton_' + i + '_' + j)
+                stopButtons[j].setAttribute('id', 'stopButton_' + i + '_' + j)
             }
         }
         
@@ -85,7 +90,9 @@
                                             <%= piState.get(pi.id).schedules[i] %>
                                         </td>
                                         <td>
-                                            <input type='button' class='delButton' onclick='deleteSchedule(this)' value='Delete'>
+                                            <input type='button' class='runButton' onclick='updateSchedule(this, "run")' value='Run'>
+                                            <input type='button' class='stopButton' onclick='updateSchedule(this, "stop")' value='Stop'>
+                                            <input type='button' class='delButton' onclick='updateSchedule(this, "delete")' value='Delete'>
                                         </td>
                                     </tr>
                                 <% }; %>

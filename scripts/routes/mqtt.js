@@ -41,15 +41,15 @@ router.route('/sendSchedule')
         })
     })
 
-router.route('/delete')
+router.route('/update')
     .post(checkAuthenticated, async(req, res) => {
         var schedule = req.body.schedule.toString().replace(/(\n)/gm,'')
-        var msg = "delete/" + req.body.id + '/' + schedule
+        var msg = req.body.value + "/" + req.body.id + '/' + schedule
         msg = msg.replace(/ /g,'').replaceAll('/', ' ')
         console.log(msg)
         client.subscribe('webApp', (err) => {
             if (!err) {
-                client.publish('delete', msg)
+                client.publish('schedule', msg)
                 console.log('sent msg "' + msg + '"')
             }else {
                 console.log('failed subscribe')
