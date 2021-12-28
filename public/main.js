@@ -66,7 +66,7 @@ jQuery(document).ready(function($){
 
 		this.singleEvents.each(function(){
 			//create the .event-date element for each event
-			var durationLabel = '<span data-playlist="' + $(this).data('playlist') + '" data-schedule="' + $(this).data('schedule') + '" class="event-date">'+$(this).data('start')+' - '+$(this).data('end')+'</span>';
+			var durationLabel = '<span data-playlist="' + $(this).data('playlist') + '" class="event-date">'+$(this).data('start')+' - '+$(this).data('end')+'</span>';
 			$(this).children('a').prepend($(durationLabel));
 
 			//detect click on the event and open the modal
@@ -120,19 +120,18 @@ jQuery(document).ready(function($){
 		//update event content
 		console.log(event.find('.event-date').attr('data-playlist'))
 		var playlist = event.find('.event-date').attr('data-playlist').split(',')
-		var sched = parseInt(event.find('.event-date').attr('data-schedule'))
-		var line = '<h4>Screens: '+ schedulesConfig[sched]["totalScreens"] + '</h4><h4>Orientation: ' + schedulesConfig[sched]["orientation"] + '</h4><table border="1"><thead><th>Playlist</th><th>Click to play media</th></thead></tbody>'		
+		var line = '<h4>Screens: '+ schedulesConfig["totalScreens"] + '</h4><h4>Orientation: ' + schedulesConfig["orientation"] + '</h4><table border="1"><thead><th>Playlist</th><th>Click to play media</th></thead></tbody>'		
 		
 		for (var i in playlist){
 			line += '<tr><td>' + playlist[i] + '</td><td><table border="1">'
-			for (var j in schedulesConfig[sched]["playlistMedia"][playlist[i]]){
-				line += '<tr><td><p onclick="showFile(\'' + schedulesConfig[sched]["playlistMedia"][playlist[i]][j] + '\')">' + schedulesConfig[sched]["playlistMedia"][playlist[i]][j] + '</p></td></tr>'
+			for (var j in schedulesConfig["playlistMedia"][playlist[i]]){
+				line += '<tr><td><p onclick="showFile(\'' + schedulesConfig["playlistMedia"][playlist[i]][j] + '\')">' + schedulesConfig["playlistMedia"][playlist[i]][j] + '</p></td></tr>'
 			}
 			line += '</table></td></tr>'
 		}
 		line += '</tbody></table>'
 		line += '<div id ="imageArea" style="display:none"><h3>Image: </h3><img id="image"><h4 class="title"></h4></div>'
-		line += '<div id ="videoArea" style="display:none"><h3>Video: </h3><video id="video"><source id="vidSrc"></video><h4 class="title"></h4</div>'
+		line += '<div id ="videoArea" style="display:none"><h3>Video: </h3><video id="video" muted><source id="vidSrc"></video><h4 class="title"></h4</div>'
 		
 		$('.event-info').html(line)
 		//this.modalBody.find('.event-info')[0].html(line)

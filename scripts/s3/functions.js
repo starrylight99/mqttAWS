@@ -9,6 +9,7 @@ var listObject = function(params) {
                 if(error) {
                     reject(error);
                 } else {
+                    console.log(data)
                     success(data);
                 }
             }
@@ -189,8 +190,8 @@ const getFilesandURL = (group, req, res, callback) => {
     })
 }
 
-const getSchedules = (group, req, res, piState, pi, callback) => {
-    const params = {
+const getSchedules = (group, req, res, piState, pi, devices, callback) => {
+    const params = { 
         Bucket: 'maventest1',
         Prefix: group + '/schedules/', 
         Delimiter: '/'
@@ -205,7 +206,12 @@ const getSchedules = (group, req, res, piState, pi, callback) => {
             for (var i = 0; i < data.CommonPrefixes.length; i++){
                 schedules.push(data.CommonPrefixes[i].Prefix.split('/')[2])
             }
-            callback(schedules, req, res, piState, pi)
+            if (devices){
+                callback(schedules, req, res, piState, pi)
+            }else{
+                callback(schedules, req, res)
+            }
+            
         }
     })
 }
@@ -315,84 +321,121 @@ const getPlaylistsandURL = (group, req, res, callback) => {
     })
 }
 
-const getSchedulesandURL = (group, req, res, callback) => {
-    const params = {
+const getSchedulesandURL = (sched, group, req, res, callback) => {
+    var promises = []
+    var configParams = {
         Bucket: 'maventest1',
-        Prefix: group + '/schedules/', 
-        Delimiter: '/'
-    };
-    s3.listObjectsV2(params, function(err, data) {
-        if (err) {
-            console.log(err.message)
-            return 'There was an error viewing your album: ' + err.message
-        } else{
-            var schedules = []
-            var promises = []
-            for (var i = 0; i < data.CommonPrefixes.length; i++){
-                var schedule = data.CommonPrefixes[i].Prefix.split('/')[2]
-                var configParams = {
-                    Bucket: 'maventest1',
-                    Key: group + '/schedules/' + schedule + '/' + schedule + '_schedule.json', 
-                }
-                promises.push(getObject(configParams))
+        Key: group + '/schedules/' + sched + '/' + sched + '_schedule.json', 
+    }
+    promises.push(getObject(configParams))
+    Promise.all(promises)
+        .then(function(results){
+            var uniqueMedia = []
+            var uniqueSchedule = {}
+            var schedule = JSON.parse(results[0].Body.toString())
+            for (var j in Object.keys(schedule['mediaNames'])){
+                uniqueMedia.push(Object.keys(schedule['mediaNames'])[j])
+                uniqueSchedule[Object.keys(schedule['mediaNames'])[j]] = [schedule['scheduleName'], schedule['mediaNames'][Object.keys(schedule['mediaNames'])[j]]]
             }
-
-            Promise.all(promises)
-                .then(function(results){
-                    var uniqueMedia = []
-                    var uniqueSchedule = {}
-                    var schedules = []
-                    for (var i in results){
-                        var data = JSON.parse(results[i].Body.toString())
-                        schedules.push(data)
-                        console.log(data)
-                        for (var j in Object.keys(data['mediaNames'])){
-                            uniqueMedia.push(Object.keys(data['mediaNames'])[j])
-                            uniqueSchedule[Object.keys(data['mediaNames'])[j]] = [data['scheduleName'], data['mediaNames'][Object.keys(data['mediaNames'])[j]]]
-                        }
-                    }
-                    uniqueMedia = Array.from(new Set(uniqueMedia))
-                    urls = '{'
-                    for (var i in uniqueMedia){
-                        var fileParams = {
-                            Bucket: 'maventest1',
-                            Key: group + '/schedules/' + uniqueSchedule[uniqueMedia[i]][0] + '/' + uniqueSchedule[uniqueMedia[i]][1] + '/' + uniqueMedia[i],
-                            ResponseContentType: mime.lookup(uniqueMedia[i])
-                        }
-                        urls += '"' + uniqueMedia[i] + '":"' + s3.getSignedUrl('getObject', fileParams) + '",'
-                    }
-                    urls = urls.slice(0, -1) + '}'
-                    callback(schedules, urls, req, res)
-                })
-        }
-    })
+            uniqueMedia = Array.from(new Set(uniqueMedia))
+            urls = '{'
+            for (var i in uniqueMedia){
+                var fileParams = {
+                    Bucket: 'maventest1',
+                    Key: group + '/schedules/' + uniqueSchedule[uniqueMedia[i]][0] + '/' + uniqueSchedule[uniqueMedia[i]][1] + '/' + uniqueMedia[i],
+                    ResponseContentType: mime.lookup(uniqueMedia[i])
+                }
+                urls += '"' + uniqueMedia[i] + '":"' + s3.getSignedUrl('getObject', fileParams) + '",'
+            }
+            urls = urls.slice(0, -1) + '}'
+            callback(schedule, urls, req, res)
+        })
 }
 
-const deletePlaylist = (playlist, group) => {
-    const params = {
-        Bucket: 'maventest1',
-        Prefix: group + '/' + playlist + '/', 
-        Delimiter: '/'
-    };
-    s3.listObjects(params, function(err, data) {
-        if (err) {
-            return 'There was an error viewing your album: ' + err.message
-        }else{
+const deleteFolders = (folders, group, schedule) => {
+    var promises = []
+    if (schedule){
+        for (var i = 0; i < folders.length; i++){
+            var params = {
+                Bucket: 'maventest1',
+                Prefix: group + '/schedules/' + folders[i] + '/', 
+                Delimiter: '/'
+            }
+            promises.push(listObject(params))
+        }
+    }else{
+        for (var i = 0; i < folders.length; i++){
+            var params = {
+                Bucket: 'maventest1',
+                Prefix: group + '/' + folders[i] + '/', 
+                Delimiter: '/'
+            }
+            promises.push(listObject(params))
+        }
+    }
+    Promise.all(promises)
+        .then(function(results){
+            promises = []
             const delParams = {
                 Bucket: 'maventest1',
                 Delete: {Objects: []}, 
             };
-            console.log(data.Contents,"<<<all content");
-            data.Contents.forEach(function(obj,index){
-                console.log(obj.Key,"<<<file path")
-                delParams.Delete.Objects.push({Key: obj.Key})
-            })
-            s3.deleteObjects(delParams, function(err, data) {
-                if (err) console.log(err, err.stack);
-                else console.log('delete', data);
-            })
-        }
-    })
+            for (var i in results){
+                results[i].Contents.forEach(function(obj){
+                    delParams.Delete.Objects.push({Key: obj.Key})
+                    console.log(obj.Key,"<<<file path")
+                })
+                console.log(results[i])
+                for (var j in results[i].CommonPrefixes){
+                    console.log(results[i].CommonPrefixes[j].Prefix)
+                    var subParams = {
+                        Bucket: 'maventest1',
+                        Prefix: results[i].CommonPrefixes[j].Prefix, 
+                        Delimiter: '/'
+                    }
+                    promises.push(listObject(subParams))
+                }
+            }
+            if (promises.length > 0){
+                Promise.all(promises)
+                    .then(function(results){
+                        for (var i in results){
+                            results[i].Contents.forEach(function(obj){
+                                delParams.Delete.Objects.push({Key: obj.Key})
+                                console.log(obj.Key,"<<<file path")
+                            })
+                        }
+                        s3.deleteObjects(delParams, function(err, data) {
+                            if (err) console.log(err, err.stack);
+                            else console.log('delete', data);
+                        })
+                    })
+            }else{
+                s3.deleteObjects(delParams, function(err, data) {
+                    if (err) console.log(err, err.stack);
+                    else console.log('delete', data);
+                })
+            }
+        })
+    // s3.listObjects(params, function(err, data) {
+    //     if (err) {
+    //         return 'There was an error viewing your album: ' + err.message
+    //     }else{
+    //         const delParams = {
+    //             Bucket: 'maventest1',
+    //             Delete: {Objects: []}, 
+    //         };
+    //         console.log(data.Contents,"<<<all content");
+    //         data.Contents.forEach(function(obj,index){
+    //             console.log(obj.Key,"<<<file path")
+    //             delParams.Delete.Objects.push({Key: obj.Key})
+    //         })
+    //         s3.deleteObjects(delParams, function(err, data) {
+    //             if (err) console.log(err, err.stack);
+    //             else console.log('delete', data);
+    //         })
+    //     }
+    // })
 }
 
 const getPlaylist = (playlist, group) => {
@@ -437,31 +480,28 @@ const getPlaylist = (playlist, group) => {
     })
 }
 
-const deleteFile = (filename, group) => {
-    const params = {
+const deleteFiles = (delFiles, group) => {
+    const delParams = {
         Bucket: 'maventest1',
-        Key: group + '/media/' + filename
-        // Delete: {Objects: [{}]},  
+        Delete: {Objects: []}, 
     };
+    for (var i = 0; i < delFiles.length; i++){
+        delParams.Delete.Objects.push({Key: group + '/media/' + delFiles[i]})
+    }
 
-    s3.deleteObject(params, function(err, data) {
-        if (err){
-            console.log('err: ', err.message)
-            return 'Error deleting file: ' + err.message
-        }
-        else{
-            console.log('data: ', data)
-        }
+    s3.deleteObjects(delParams, function(err, data) {
+        if (err) console.log(err, err.stack);
+        else console.log('delete', data);
     })
 }
 
 module.exports = {
     uploadFile: uploadFile,
     getPlaylist: getPlaylist,
-    deleteFile: deleteFile,
+    deleteFiles: deleteFiles,
     getFiles: getFiles,
     uploadConfig: uploadConfig,
-    deletePlaylist: deletePlaylist,
+    deleteFolders: deleteFolders,
     getPlaylists: getPlaylists,
     uploadSchedule: uploadSchedule,
     getSchedules: getSchedules,

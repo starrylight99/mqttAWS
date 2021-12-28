@@ -19,24 +19,6 @@
                 $('#retrieveResult').html(data)
             })
         })
-        $('#delete').submit((event)=>{
-            event.preventDefault()
-            var filename = $('#filename').val()
-            $.post('/files/delete', {
-                filename: filename,
-            }, (data)=>{
-                $('#deleteResult').html(data)
-            })
-        })
-        $('#deletePlaylist').submit((event)=>{
-            event.preventDefault()
-            var delPlay = $('#delPlay').val()
-            $.post('/files/deletePlaylist', {
-                delPlay: delPlay,
-            }, (data)=>{
-                $('#deletePlaylistResult').html(data)
-            })
-        })
     })  
 </script>
 <html>
@@ -48,32 +30,6 @@ Temperature
     <input type="submit">
 </form>
 <span id="tempResult"></span>
-
-<p>Media Upload</p>
-<form action="/upload">
-    <input type="submit" value="Upload" />
-</form>
-
-<p>Retrieve Playlist</p>
-<form id="retrieve">
-    <input type="text" id="playlist">
-    <input type="submit" value="Get Playlist"/>
-</form>
-<span id="retrieveResult"></span>
-
-<p>Delete File</p>
-<form id="delete">
-    <input type="text" id="filename">
-    <input type="submit" value="Delete"/>
-</form>
-<span id="deleteResult"></span>
-
-<p>Delete Playlist</p>
-<form id="deletePlaylist">
-    <input type="text" id="delPlay">
-    <input type="submit" value="Delete"/>
-</form>
-<span id="deletePlaylistResult"></span>
 
 <p>Create Playlist</p>
 <form action="/files/playlist" method="GET">

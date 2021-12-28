@@ -8,6 +8,7 @@
         var video = document.getElementById('video')
         var videoArea = document.getElementById('videoArea')
         var imageArea = document.getElementById('imageArea')
+        video.pause()
         image.setAttribute('src', '')
         vidSrc.setAttribute('src', '')
         $('.title').empty()
@@ -49,10 +50,21 @@
         var delButtons = document.getElementsByClassName('delButtons')
         for (var i = 0; i < mediaFiles.length; i++){
             mediaFiles[i].setAttribute('onclick', 'showFile(' + i +')')
-            mediaFiles[i].id = 'file_' + i
-            delButtons[i].id = 'del_' + i
-            delButtons[i].setAttribute('onclick', 'delFile(' + i +')')
+            delButtons[i].setAttribute('value', mediaFiles[i].textContent)
         }
+        $('#deleteMedia').submit((event)=>{
+            event.preventDefault()
+            var mediaList = []
+            $("input:checkbox[class=delButtons]:checked").each(function(){
+                mediaList.push($(this).val());
+            })
+            console.log(mediaList)
+            $.post('/files/deleteFiles', {
+                delMedia: mediaList,
+            }, (data)=>{
+
+            })
+        })
     })  
 </script>
  
@@ -60,30 +72,40 @@
 <body>
 <h1>Media</h1>
 <hr>
-
-<table border='1'>
-    <thead>
-        <th colspan="2">
-            Click to preview media:
-        </th>
-    </thead>
-    <tbody>
-        <% for (var i = 0; i < filenames.length; i++) { %>
+<form id='deleteMedia'>
+    <table border='1'>
+        <thead>
+            <th>
+                Click to preview media:
+            </th>
+            <th>
+                Delete
+            </th>
+        </thead>
+        <tbody>
+            <% for (var i = 0; i < filenames.length; i++) { %>
+                <tr>
+                    <td>
+                        <p class='mediaFiles'><%= filenames[i] %></p>
+                    </td>
+                    <td>
+                        <input type='checkbox' class='delButtons'>
+                    </td>
+                </tr>
+            <% }; %>
+        </tbody>
+        <tfoot>
             <tr>
-                <td>
-                    <p class='mediaFiles'><%= filenames[i] %></p>
-                </td>
-                <td>
-                    <input type='button' onclick="delFile()" class='delButtons' value='Delete'> 
+                <td colspan="2">
+                    <input type = "submit" value = "Delete"/>
                 </td>
             </tr>
-        <% }; %>
-    </tbody>
-</table>
-
+        </tfoot>
+    </table>
+</form>
 <div id ='videoArea' style='display:none'>
     <h3>Video: </h3>
-    <video id='video'>
+    <video id='video' muted>
         <source id='vidSrc'>
     </video>
     <h4 class='title'></h4>

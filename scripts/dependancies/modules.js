@@ -5,6 +5,7 @@ var bodyParser = require('body-parser')
 const multer = require('multer')
 var AWS = require('aws-sdk')
 var fs = require('fs')
+var url = require('url'); 
 const { get } = require('https')
 const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image') || file.mimetype.startsWith('video')) {
@@ -38,4 +39,5 @@ module.exports = {
     session: session,
     methodOverride: methodOverride,
     mime: mime,
+    url: url,
 }

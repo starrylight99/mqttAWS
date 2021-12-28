@@ -8,6 +8,7 @@
         var video = document.getElementById('video')
         var videoArea = document.getElementById('videoArea')
         var imageArea = document.getElementById('imageArea')
+        video.pause()
         image.setAttribute('src', '')
         vidSrc.setAttribute('src', '')
         $('.title').empty()
@@ -35,7 +36,7 @@
     }
     function delPlaylist(i){
         console.log(playlistNames[i])
-        $.post('/files/deletePlaylist', {
+        $.post('/files/deletePlaylists', {
             delPlay: playlistNames[i],
         }, (data)=>{
             
@@ -52,8 +53,20 @@
         }
         for (var i = 0; i < playlists.length; i++){
             playlistNames.push(playlists[i].textContent)
-            delButtons[i].setAttribute('onclick', 'delPlaylist(' + i +')')
+            delButtons[i].setAttribute('value', playlists[i].textContent)
         }
+        $('#deletePlaylists').submit((event)=>{
+            event.preventDefault()
+            var playlistList = []
+            $("input:checkbox[class=delButtons]:checked").each(function(){
+                playlistList.push($(this).val());
+            })
+            $.post('/files/deletePlaylists', {
+                delPlay: playlistList,
+            }, (data)=>{
+
+            })
+        })
     })  
 </script>
  
@@ -62,43 +75,52 @@
 <h1>Playlist</h1>
 <hr>
 
-<table border='1'>
-    <thead>
-        <th>Playlist Name</th>
-        <th>Screens</th>
-        <th>Orientation</th>
-        <th>Aspect Ratio</th>
-        <th colspan="2">Click to preview file</th>
-    </thead>
-    <tbody>
-        <% for (var i = 0; i < config.length; i++) { %>
+<form id='deletePlaylists'>
+    <table border='1'>
+        <thead>
+            <th>Playlist Name</th>
+            <th>Screens</th>
+            <th>Orientation</th>
+            <th>Aspect Ratio</th>
+            <th>Click to preview file</th>
+            <th>Delete</th>
+        </thead>
+        <tbody>
+            <% for (var i = 0; i < config.length; i++) { %>
+                <tr>
+                    <td><p class='playlistNames'><%= config[i].playlistName %></p></td>
+                    <td><%= config[i].screens %></td>
+                    <td><%= config[i].orientation %></td>
+                    <td><%= config[i].aspectRatio[0] %> x <%= config[i].aspectRatio[1] %></td>
+                    <td>
+                        <table border='0'>
+                            <tbody>
+                                <% for (var j = 0; j < config[i].playlist.length; j++) { %>
+                                    <tr>
+                                        <td>
+                                            <p class='mediaFiles'><%= config[i].playlist[j][0] %></p>
+                                        </td>
+                                    </tr>
+                                <% }; %>
+                            </tbody>
+                        </table>
+                    </td>
+                    <td><input type='checkbox' class='delButtons'></td>
+                </tr>
+            <% }; %>
+        </tbody>
+        <tfoot>
             <tr>
-                <td><p class='playlistNames'><%= config[i].playlistName %></p></td>
-                <td><%= config[i].screens %></td>
-                <td><%= config[i].orientation %></td>
-                <td><%= config[i].aspectRatio[0] %> x <%= config[i].aspectRatio[1] %></td>
-                <td>
-                    <table border='0'>
-                        <tbody>
-                            <% for (var j = 0; j < config[i].playlist.length; j++) { %>
-                                <tr>
-                                    <td>
-                                        <p class='mediaFiles'><%= config[i].playlist[j][0] %></p>
-                                    </td>
-                                </tr>
-                            <% }; %>
-                        </tbody>
-                    </table>
+                <td colspan="6">
+                    <input type = "submit" value = "Delete"/>
                 </td>
-                <td><input type='button' onclick="delPlaylist()" class='delButtons' value='Delete'></td>
             </tr>
-        <% }; %>
-    </tbody>
-</table>
-
+        </tfoot>
+    </table>
+</form>
 <div id ='videoArea' style='display:none'>
     <h3>Video: </h3>
-    <video id='video'>
+    <video id='video' muted>
         <source id='vidSrc'>
     </video>
     <h4 class='title'></h4>

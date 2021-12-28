@@ -1,0 +1,68 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    function showSchedule(schedule){
+        console.log(schedule)
+        $.get('/viewSchedule', {
+            schedule: schedule
+        }, (data)=>{
+
+        })
+    }
+    $(document).ready(()=>{
+        var schedules = document.getElementsByClassName('schedules')
+        var delButtons = document.getElementsByClassName('delButtons')
+        for (var i = 0; i < schedules.length; i++){
+            delButtons[i].setAttribute('value', schedules[i].textContent)
+            schedules[i].setAttribute('onclick', 'showSchedule("' + schedules[i].textContent + '")')
+        }
+        $('#deleteSchedules').submit((event)=>{
+            event.preventDefault()
+            var scheduleList = []
+            $("input:checkbox[class=delButtons]:checked").each(function(){
+                scheduleList.push($(this).val());
+            })
+            $.post('/files/deleteSchedules', {
+                delSched: scheduleList,
+            }, (data)=>{
+
+            })
+        })
+    })  
+</script>
+<html>
+<body>
+<h1>Schedules</h1>
+<hr>
+<form id="deleteSchedules">
+    <table border='1'>
+        <thead>
+            <th >
+                Click to view schedule
+            </th>
+            <th>
+                Delete
+            </th>
+        </thead>
+        <tbody>
+            <% for (var i = 0; i < schedules.length; i++) { %>
+                <tr>
+                    <td>
+                        <p class='schedules'><%= schedules[i] %></p>
+                    </td>
+                    <td>
+                        <input type='checkbox' class='delButtons'> 
+                    </td>
+                </tr>
+            <% }; %>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2">
+                    <input type = "submit" value = "Delete"/>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</form>
+</body>
+</html>

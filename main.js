@@ -48,7 +48,8 @@ var uploadRoute = require('./scripts/routes/upload')
 var devicesRoute = require('./scripts/routes/devices')
 var mediaRoute = require('./scripts/routes/media')
 var playlistRoute = require('./scripts/routes/viewPlaylist')
-var scheduleRoute = require('./scripts/routes/viewSchedule')
+var scheduleRoute = require('./scripts/routes/listSchedules')
+var viewScheduleRoute = require('./scripts/routes/viewSchedule')
 const { checkAuthenticated } = require('./scripts/account/permissions.js')
 
 app.use('/', homeRoute)
@@ -65,7 +66,8 @@ app.use('/upload', uploadRoute)
 app.use('/devices', devicesRoute)
 app.use('/media', mediaRoute)
 app.use('/viewPlaylist', playlistRoute)
-app.use('/viewSchedule', scheduleRoute)
+app.use('/listSchedules', scheduleRoute)
+app.use('/viewSchedule', viewScheduleRoute)
 app.use(express.static('public'));
 
 // Routes non-existant routes to home

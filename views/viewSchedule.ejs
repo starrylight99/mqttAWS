@@ -11,6 +11,7 @@
         var video = document.getElementById('video')
         var videoArea = document.getElementById('videoArea')
         var imageArea = document.getElementById('imageArea')
+        video.pause()
         image.setAttribute('src', '')
         vidSrc.setAttribute('src', '')
         $('.title').empty()
@@ -37,47 +38,41 @@
         }
 	}
     $(document).ready(()=>{
-        schedulesConfig = JSON.parse('<%- schedules %>');
-        var scheduleNames = document.getElementsByClassName('text-xl')
-        for (var i = 0; i < scheduleNames.length; i++){
-            scheduleNames[i].textContent = schedulesConfig[i]['scheduleName']
-        }
+        schedulesConfig = JSON.parse('<%- schedule %>');
+        document.getElementsByClassName('text-xl')[0].textContent = schedulesConfig['scheduleName']
         urls = JSON.parse('<%- urls %>');
         
         var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        var eventEntry = document.getElementsByClassName('schedule_entry')
-        for (var i = 0; i < eventEntry.length; i++){
-            eventEntry[i].setAttribute('id', days[i%7]+'_'+ Math.floor(i/7))
+        // var eventEntry = document.getElementsByClassName('schedule_entry')
+        // for (var i = 0; i < eventEntry.length; i++){
+        //     eventEntry[i].setAttribute('id', days[i%7]+'_'+ Math.floor(i/7))
+        // }
+        var week = {
+            'Monday':[],
+            'Tuesday':[],
+            'Wednesday':[],
+            'Thursday':[],
+            'Friday':[],
+            'Saturday':[],
+            'Sunday':[],
         }
-
-        for (var sched in schedulesConfig){
-            var week = {
-                'Monday':[],
-                'Tuesday':[],
-                'Wednesday':[],
-                'Thursday':[],
-                'Friday':[],
-                'Saturday':[],
-                'Sunday':[],
+        var weekKeys = Object.keys(week)
+        for (var i in schedulesConfig['schedule']){
+            for (var j in schedulesConfig['schedule'][i]['days']){
+                week[schedulesConfig['schedule'][i]['days'][j]].push({
+                    'start': schedulesConfig['schedule'][i]['startTime'],
+                    'end': schedulesConfig['schedule'][i]['endTime'],
+                    'playlist': schedulesConfig['schedule'][i]['playlists']
+                })
             }
-            var weekKeys = Object.keys(week)
-            for (var i in schedulesConfig[sched]['schedule']){
-                for (var j in schedulesConfig[sched]['schedule'][i]['days']){
-                    week[schedulesConfig[sched]['schedule'][i]['days'][j]].push({
-                        'start': schedulesConfig[sched]['schedule'][i]['startTime'],
-                        'end': schedulesConfig[sched]['schedule'][i]['endTime'],
-                        'playlist': schedulesConfig[sched]['schedule'][i]['playlists']
-                    })
-                }
-            }
-            for (var i in weekKeys){
-                for (var j in week[weekKeys[i]]){
-                    var temp = parseInt(j) + 1
-                    var line = '<li class="single-event" data-playlist="' + week[weekKeys[i]][j]['playlist'] + '" data-schedule="' + sched + '" data-start="' + week[weekKeys[i]][j]['start'] + '" data-end="' + week[weekKeys[i]][j]['end'] + '" data-content="event-abs-circuit" data-event="event-' + temp + '"><a href="#0"><em class="event-name">' 
-                    line += '</em></a></li>'
-                    $('#'+ weekKeys[i] + '_' + sched).append(line)
-                }  
-            }
+        }
+        for (var i in weekKeys){
+            for (var j in week[weekKeys[i]]){
+                var temp = parseInt(j) + 1
+                var line = '<li class="single-event" data-playlist="' + week[weekKeys[i]][j]['playlist'] + '" data-start="' + week[weekKeys[i]][j]['start'] + '" data-end="' + week[weekKeys[i]][j]['end'] + '" data-content="event-abs-circuit" data-event="event-' + temp + '"><a href="#0"><em class="event-name">' 
+                line += '</em></a></li>'
+                $('#'+ weekKeys[i]).append(line)
+            }  
         }
         
     })
@@ -91,103 +86,97 @@
 <body>
 <h1>Schedule</h1>
 <hr>
-<% for (let schedule = 0; schedule < numSchedules; schedule++){ %>
-    <h1 class="text-xl"></h1>
+<h1 class="text-xl"></h1>
 
 
-    <div class="cd-schedule loading">
-        <div class="timeline">
-            <ul>
-                <% for (let i=0;i<24;i++) { %>
-                    <% if (i<10){ %>
-                        <li><span>0<%=i%>:00</span></li>
-                        <li><span>0<%=i%>:30</span></li>
-                    <% } else {%>
-                        <li><span><%=i%>:00</span></li>
-                        <li><span><%=i%>:30</span></li>
-                    <% } %>
-                <% } %>  
-            </ul>
-        </div>
-    
-        <div class="events">
-            <ul class="wrap">
-                <li class="events-group">
-                    <div class="top-info"><span>Monday</span></div>
-                    <ul class="schedule_entry" id="Monday">
-    
-                    </ul>
-                </li>
-    
-                <li class="events-group">
-                    <div class="top-info"><span>Tuesday</span></div>
-                    <ul class="schedule_entry" id="Tuesday">
-    
-                    </ul>
-                </li>
-    
-                <li class="events-group">
-                    <div class="top-info"><span>Wednesday</span></div>
-                    <ul class="schedule_entry" id="Wednesday">
-    
-                    </ul>
-                </li>
-    
-                <li class="events-group">
-                    <div class="top-info"><span>Thursday</span></div>
-                    <ul class="schedule_entry" id="Thursday">
-    
-                    </ul>
-                </li>
-    
-                <li class="events-group">
-                    <div class="top-info"><span>Friday</span></div>
-                    <ul class="schedule_entry" id="Friday">
-    
-                    </ul>
-                </li>
-    
-                <li class="events-group">
-                    <div class="top-info"><span>Saturday</span></div>
-                    <ul class="schedule_entry" id="Saturday">
-    
-                    </ul>
-                </li>
-    
-                <li class="events-group">
-                    <div class="top-info"><span>Sunday</span></div>
-                    <ul class="schedule_entry" id="Sunday">
-    
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    
-        <div class="event-modal">
-            <header class="header">
-                <div class="content">
-                    <span class="event-date"></span>
-                    <h3 class="event-name"></h3>
-                </div>
-    
-                <div class="header-bg"></div>
-            </header>
-    
-            <div class="body">
-                <div class="event-info"></div>
-                <div class="body-bg"></div>
+<div class="cd-schedule loading">
+    <div class="timeline">
+        <ul>
+            <% for (let i=0;i<24;i++) { %>
+                <% if (i<10){ %>
+                    <li><span>0<%=i%>:00</span></li>
+                    <li><span>0<%=i%>:30</span></li>
+                <% } else {%>
+                    <li><span><%=i%>:00</span></li>
+                    <li><span><%=i%>:30</span></li>
+                <% } %>
+            <% } %>  
+        </ul>
+    </div>
+
+    <div class="events">
+        <ul class="wrap">
+            <li class="events-group">
+                <div class="top-info"><span>Monday</span></div>
+                <ul class="schedule_entry" id="Monday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Tuesday</span></div>
+                <ul class="schedule_entry" id="Tuesday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Wednesday</span></div>
+                <ul class="schedule_entry" id="Wednesday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Thursday</span></div>
+                <ul class="schedule_entry" id="Thursday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Friday</span></div>
+                <ul class="schedule_entry" id="Friday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Saturday</span></div>
+                <ul class="schedule_entry" id="Saturday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Sunday</span></div>
+                <ul class="schedule_entry" id="Sunday">
+
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="event-modal">
+        <header class="header">
+            <div class="content">
+                <span class="event-date"></span>
+                <h3 class="event-name"></h3>
             </div>
-    
-            <a href="#0" class="close">Close</a>
+
+            <div class="header-bg"></div>
+        </header>
+
+        <div class="body">
+            <div class="event-info"></div>
+            <div class="body-bg"></div>
         </div>
-    
-        <div class="cover-layer"></div>
-    </div> <!-- .cd-schedule -->
-      
-        
-<% } %>
 
+        <a href="#0" class="close">Close</a>
+    </div>
 
+    <div class="cover-layer"></div>
+</div> <!-- .cd-schedule -->
 
 </body>
 </html>

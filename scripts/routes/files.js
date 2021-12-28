@@ -1,6 +1,6 @@
 const { express, upload } = require('../dependancies/modules')
 const { fs } = require('../dependancies/modules')
-const { getPlaylist, uploadFile, deleteFile, getFiles, uploadConfig, deletePlaylist, getPlaylists, uploadSchedule } = require('../s3/functions')
+const { getPlaylist, uploadFile, deleteFiles, getFiles, uploadConfig, deleteFolders, getPlaylists, uploadSchedule } = require('../s3/functions')
 const { checkAuthenticated } = require('../account/permissions')
 var router = express.Router()
 
@@ -30,17 +30,23 @@ router.route('/retrieve')
         getPlaylist(playlist, req.user.group)
     })
 
-router.route('/delete')
+router.route('/deleteFiles')
     .post(checkAuthenticated, async(req, res, next) => {
-        var filename = req.body.filename
-        deleteFile(filename, req.user.group)
+        var delMedia = req.body.delMedia
+        deleteFiles(delMedia, req.user.group)
     })
     
-router.route('/deletePlaylist')
+router.route('/deletePlaylists')
     .post(checkAuthenticated, async(req, res, next) => {
         console.log(req.body)
         var delPlay = req.body.delPlay
-        deletePlaylist(delPlay, req.user.group)
+        deleteFolders(delPlay, req.user.group, false)
+    })
+
+router.route('/deleteSchedules')
+    .post(checkAuthenticated, async(req, res, next) => {
+        var delSched = req.body.delSched
+        deleteFolders(delSched, req.user.group, true)
     })
 
 router.route('/playlist')
