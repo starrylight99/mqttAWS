@@ -2,10 +2,10 @@
 <script>
     function showSchedule(schedule){
         console.log(schedule)
-        $.get('/viewSchedule', {
+        $.post('/viewSchedule', {
             schedule: schedule
         }, (data)=>{
-
+            window.location.replace("/viewSchedule/" + schedule)
         })
     }
     $(document).ready(()=>{
