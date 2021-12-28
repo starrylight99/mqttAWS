@@ -29,6 +29,9 @@
             $("table tbody").append(addUpload);
             $("#"+fileCount).children().first().change(handleFiles);
         });
+        $('#removerow').click(function(){
+            $('#uploadTable tbody tr:last').remove();
+        })
     });
 </script>
 </head>
@@ -39,7 +42,7 @@
     <h1>File Upload</h1>
     <hr>
     <form method = "POST" action = "/files/upload" enctype = "multipart/form-data">
-    <table border ="1">
+    <table id='uploadTable' border ="1">
         <thead>
             <tr>
                 <th>File</th>
@@ -51,7 +54,7 @@
         <tbody>
             <tr>
                 <td id ='1'>
-                    <input type = 'file' name = 'file' id = 'file' accept=".jpg, .jpeg, .png .mov .mp4" required/>
+                    <input type = 'file' name = 'file' id = 'file' accept="image/*, video/*" required/>
                     <br>
                     <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
                 </td>
@@ -63,6 +66,7 @@
     </table>
     <hr>
     <input type = "button" value ="Add another file" id="newrows">
+    <input type = "button" value ="Remove file" id="removerow">
     <input type = "submit" value = "Upload"/>
     </form>
     </center>

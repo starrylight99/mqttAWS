@@ -62,6 +62,12 @@
         addLine += "</td></tr>"
         $("#timeblock_" + lineCount + " tbody").append(addLine)
     }
+    function removeLastPlaylist(lineCount){
+        if (playlistCount[lineCount] >0){
+            playlistCount[lineCount]--
+        }
+        $('#timeblock_' + lineCount + ' tbody tr:last').remove();
+    }
     function validate(lineCount){
         var canvas = document.getElementById('canvas_' + lineCount)
         var draw_block = canvas.getContext('2d')
@@ -128,12 +134,19 @@
             addLine += "<div><input type='checkbox' class='dayblock_" + lineCount + "' value='" + week[i] + "' id='" + week[i] + "_" + lineCount + "'><label for='" + week[i] + "_" + lineCount + "'>" + week[i] + "</label></div>"
         }            
         addLine += "</td><td><input type='time' value='00:00' min='00:00' max='23:59' class ='time_" + lineCount + "'>-<input type='time' value='00:00' min='00:00' max='23:59' class ='time_" + lineCount + "'></td>";
-        addLine += "<td> <table border='0' id='timeblock_" + lineCount + "'><tbody></tbody><tfoot><input type='button' onclick='addPlaylist(" + lineCount +")' value='Add Playlist'></tfoot></table></td>"
+        addLine += "<td> <table border='0' id='timeblock_" + lineCount + "'><tbody></tbody><tfoot><input type='button' onclick='addPlaylist(" + lineCount +")' value='Add Playlist'><input type='button' onclick='removeLastPlaylist(" + lineCount + ")' value='Remove Last Entry'></tfoot></table></td>"
         addLine += "<td> <input type='button' onclick=validate(" + lineCount + ") value='Validate'>"
         addLine += " Layout: <canvas id='canvas_" + lineCount + "' width='" + aspect_ratio[0]*5*totalScreens + "' height='" + aspect_ratio[1]*5 + "' style='border: 1px solid black;'></canvas>"
         addLine += "</td></tr>"
         lineCount++
         $('#scheduleTableBody').append(addLine)
+    }
+    function removeLastTime(){
+        if (lineCount > 0){
+            lineCount--
+        }
+        
+        $('#scheduleTableBody tr:last').remove();
     }
     $(document).ready(()=>{
         var info = document.getElementsByClassName("playlistInfo")
@@ -291,7 +304,7 @@
                 <tbody id='scheduleTableBody'>
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="4"><input type='button' onclick='addEntry()' value='Add new entry'/> </td></tr>
+                    <tr><td colspan="4"><input type='button' onclick='addEntry()' value='Add new entry'/><input type='button' onclick='removeLastTime()' value='Remove last entry'> </td></tr>
                 </tfoot>
             </table>
 

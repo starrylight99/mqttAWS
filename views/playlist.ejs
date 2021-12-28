@@ -37,6 +37,9 @@
         //     $('#screenTable tbody').append(addLine)
         // }
     }
+    function removeRow(){
+        $('#screenTable tbody tr:last').remove();
+    }
     $(document).ready(()=>{
         $('#chooseMedia').submit((event) => {
             event.preventDefault()
@@ -160,7 +163,10 @@
             
         </tbody>
         <tfoot>
-            <tr><td colspan="3"><input type='button' onclick='showFilenames()' value='Add new entry'/> </td> </tr>
+            <tr><td colspan="3">
+                <input type='button' onclick='showFilenames()' value='Add new entry'/> 
+                <input type='button' onclick='removeRow()' value='Remove Last Entry'/>
+            </td> </tr>
         </tfoot>
     </table>
     <hr>
