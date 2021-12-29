@@ -1,4 +1,7 @@
 jQuery(document).ready(function($){
+
+	//Only initEvents and openModal is edited so far.
+
 	var transitionEnd = 'webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend';
 	var transitionsSupported = ( $('.csstransitions').length > 0 );
 	//if browser does not support transitions - use a different event to trigger them
@@ -66,6 +69,7 @@ jQuery(document).ready(function($){
 
 		this.singleEvents.each(function(){
 			//create the .event-date element for each event
+			// Added playlist array to element when opening modal
 			var durationLabel = '<span data-playlist="' + $(this).data('playlist') + '" class="event-date">'+$(this).data('start')+' - '+$(this).data('end')+'</span>';
 			$(this).children('a').prepend($(durationLabel));
 
@@ -118,6 +122,9 @@ jQuery(document).ready(function($){
 		this.modal.attr('data-event', event.parent().attr('data-event'));
 
 		//update event content
+
+		// Get playlist data of schedule, construct table to display schedule information
+		
 		console.log(event.find('.event-date').attr('data-playlist'))
 		var playlist = event.find('.event-date').attr('data-playlist').split(',')
 		var line = '<h4>Screens: '+ schedulesConfig["totalScreens"] + '</h4><h4>Orientation: ' + schedulesConfig["orientation"] + '</h4><table border="1"><thead><th>Playlist</th><th>Click to play media</th></thead></tbody>'		
@@ -134,11 +141,7 @@ jQuery(document).ready(function($){
 		line += '<div id ="videoArea" style="display:none; "><h3>Video: </h3><video id="video" muted><source id="vidSrc"></video><h4 class="title"></h4</div>'
 		
 		$('.event-info').html(line)
-		//this.modalBody.find('.event-info')[0].html(line)
-		// this.modalBody.find('.event-info').load(event.parent().attr('data-content')+'.html .event-info > *', function(data){
-		// 	//once the event content has been loaded
-		// 	self.element.addClass('content-loaded');
-		// });
+		self.element.addClass('content-loaded');
 
 		this.element.addClass('modal-is-open');
 

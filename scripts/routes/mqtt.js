@@ -5,6 +5,9 @@ const { getSchedules } = require('../s3/functions')
 const { checkAuthenticated } = require('../account/permissions')
 var router = express.Router()
 
+/**
+ * To be removed? unused 
+ */
 router.route('/temperature')
     .post(checkAuthenticated, async(req, res) => {
         console.log(req.body)
@@ -24,6 +27,9 @@ router.route('/temperature')
         res.send(message)
     })
 
+/**
+ * Message is sent in the form of "schedule {ID(of Pi)} {scheduleName}"
+ */
 router.route('/sendSchedule') 
     .post(checkAuthenticated, async(req, res) => {
         var schedule = req.body.schedule.toString().replace(/(\n)/gm,'')
@@ -41,6 +47,9 @@ router.route('/sendSchedule')
         })
     })
 
+/**
+ * Message is sent in the form of "{cmd} {ID(of Pi)} {scheduleName}" 
+ */
 router.route('/update')
     .post(checkAuthenticated, async(req, res) => {
         var schedule = req.body.schedule.toString().replace(/(\n)/gm,'')

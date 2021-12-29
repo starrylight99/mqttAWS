@@ -2,6 +2,11 @@ const { config } = require('aws-sdk');
 const { fs, mime } = require('../dependancies/modules')
 var { s3 } = require('./config')
 
+/**
+ * Promise Wrapper to list objects upon success 
+ * @param {Object} params - parameters to list objects in S3 (Bucket, Prefix, Delimiter)
+ * @returns {Object} returns promise wrapper of the listObjectsV2 function
+ */
 var listObject = function(params) {
     return new Promise(function(success, reject) {
         s3.listObjectsV2(params,
@@ -16,10 +21,16 @@ var listObject = function(params) {
         );
     });
 }
-
+/**
+ * ASYNC Uploads schedule config to S3 and copy all relevant playlist folder to specific s3 schedule folder
+ * Structure will be {group}/schedules/{scheduleName}/{playlist folders + {scheduleName}_schedule.json}
+ * @param {Object} schedule - JSON object containing: scheduleName (string), schedule (JSON containing startTime (str), endTime (str), playlists (array of str), days (array of str)),
+ *                                                    uniquePlaylist (array of Set of all playlists in schedule), totalScreens (string), orientation (string: portrait/landscape)
+ * @param {string} group - name of the group user belongs to
+ */
 const uploadSchedule = (schedule, group) => {
     console.log(schedule.scheduleName)
-    
+    // Get all promises of listing objects in each playlist into array 
     var promises = []
     for (var i = 0; i < schedule.uniquePlaylist.length; i++){
         const playlistParams = {
@@ -31,21 +42,21 @@ const uploadSchedule = (schedule, group) => {
     }
     Promise.all(promises)
         .then(function(results){
+            // mediaNames {object} dictionary of mediaNames : a playlistName that has that media --to be used to generate signed URLs
+            // playlistMedia {object} dictionary of playlistNames : all its media --to be used for displaying playlist media in schedule
             var mediaNames = {}
             var playlistMedia = {}
-            for (var i in results){
+            for (var i in results){ //iterate through all playlists
                 playlistMedia[schedule.uniquePlaylist[i]] = []
-                console.log(1)
                 console.log(playlistMedia)
-                results[i].Contents.forEach(function(obj){
+                results[i].Contents.forEach(function(obj){ //iterating through a specific playlist
                     var filepath = obj.Key
                     const fileParams = {
                         Bucket: 'maventest1',
                         CopySource: 'maventest1/' + filepath,
                         Key: group + '/schedules/'+ schedule.scheduleName + '/' + schedule.uniquePlaylist[i] + '/' + filepath.split('/').slice(-1)[0],
                     }
-                    console.log(2)
-                    console.log(playlistMedia)
+
                     if (filepath.split('/').slice(-1)[0].split('.').slice(-1)[0] != 'json'){
                         playlistMedia[schedule.uniquePlaylist[i]].push(filepath.split('/').slice(-1)[0])
                     }
@@ -71,7 +82,7 @@ const uploadSchedule = (schedule, group) => {
                 Body: fileContent
             };
 
-            // Uploading files to the bucket
+            // Uploading scheduleconfig to bucket
             s3.upload(params, function(err, data) {
                 if (err) {
                     throw err;
@@ -81,7 +92,17 @@ const uploadSchedule = (schedule, group) => {
         })
 };
 
+/**
+ * ASYNC uploads playlist config and copies all media from media folder to the playlist folder
+ * Playlist folder structure is {group}/{playlistName}/{all relevant media files + {playlistName}_config.json}
+ * @param {Object} file - JSON object consisting: playlistName (string), aspect_ratio (array of 2 strings, [length, width]), 
+ *                                                playlists (array of array of media files played in order, images have additional element for duration to be played),
+ *                                                screens (string of number of screens), orientation (string, portrait or landscape), splitScreen (string of boolean if screen is split or not (portrait-split))
+ * @param {string} playlistName  - string of playlistName
+ * @param {string} group - c
+ */
 const uploadConfig = (file, playlistName, group) => {
+    // playlistSet - unique Array of media in playlist, then copy all files to the playlist folder
     var playlistSet = []
     console.log(file)
     for (let j = 0; j < 2; j++){
@@ -107,6 +128,7 @@ const uploadConfig = (file, playlistName, group) => {
             }
         });
     }
+    // upload config file to s3 in the playlist folder
     file['mediaNames'] = playlistSet
     fs.createWriteStream('uploads/'+ group + '_' + playlistName + '_config.json');
     fs.writeFileSync('uploads/'+ group + '_' + playlistName + '_config.json', JSON.stringify(file))
@@ -126,6 +148,11 @@ const uploadConfig = (file, playlistName, group) => {
     });
 };
 
+/**
+ * ASYNC upload single media to s3. Destination is {group}/media/{filename}
+ * @param {Array} files - array of file object as defined in multer
+ * @param {string} group - name of the group user belongs to
+ */
 const uploadFile = (files, group) => {
     // Read content from the file
     const fileContent = fs.readFileSync(files.path)
@@ -146,7 +173,15 @@ const uploadFile = (files, group) => {
     });
 };
 
-const getFiles = (group, req, res, callback) => {
+/**
+ * SYNC List all media files in the media folder --used to create playlist 
+ * After getting list of all media files, execute callback function
+ * @param {string} group - name of the group user belongs to
+ * @param {Object} req - request object 
+ * @param {Object} res - response object
+ * @param {Function} callback - callback function to execute after getting list of all files in media folder of S3
+ */
+const listFiles = (group, req, res, callback) => {
     const params = {
         Bucket: 'maventest1',
         Prefix: group + '/media/', 
@@ -160,13 +195,22 @@ const getFiles = (group, req, res, callback) => {
             //console.log(data)
             var filenames = []
             data.Contents.forEach(function(obj){
-                filenames.push(obj.Key.split('/').at(-1))
+                filenames.push(obj.Key.split('/').slice(-1)[0])
             })
             callback(filenames, req, res)
         }
     })
 }
 
+/**
+ * SYNC List all media files in the media folder and get the preSigned URL of each media --used to preview media
+ * preSigned URL are secure and have default expiration time of 60 minutes 
+ * After getting list of all media files and URLs, execute callback function
+ * @param {string} group - name of the group user belongs to
+ * @param {Object} req - request object 
+ * @param {Object} res - response object
+ * @param {Function} callback - callback function to execute after getting list of all files and URLs in media folder of S3
+ */
 const getFilesandURL = (group, req, res, callback) => {
     const params = {
         Bucket: 'maventest1',
@@ -195,7 +239,17 @@ const getFilesandURL = (group, req, res, callback) => {
     })
 }
 
-const getSchedules = (group, req, res, piState, pi, devices, callback) => {
+/**
+ * SYNC List all schedule names in S3 and execute callback function.
+ * @param {string} group - name of the group user belongs to
+ * @param {Object} req - request object
+ * @param {Object} res - response object
+ * @param {Map} piState - hash map of the states of each PI/NUC, null if devices == false
+ * @param {Array} pi - array of pi JSON object containing: id (integer), name of Pi(string), group Pi belongs to (string), location it is at (string), null if devices == false
+ * @param {boolean} devices - true if callback function involves devices such as Pi, false otherwise
+ * @param {Function} callback - callback function to be executed after listing all the schedule names
+ */
+const listSchedules = (group, req, res, piState, pi, devices, callback) => {
     const params = { 
         Bucket: 'maventest1',
         Prefix: group + '/schedules/', 
@@ -221,6 +275,11 @@ const getSchedules = (group, req, res, piState, pi, devices, callback) => {
     })
 }
 
+/**
+ * Promise Wrapper to get objects upon success 
+ * @param {Object} params - parameters to get object in S3 (Bucket, Key)
+ * @returns {Object} returns promise wrapper of the getObject function
+ */
 var getObject = function(params) {
     return new Promise(function(success, reject) {
         s3.getObject(params,
@@ -235,6 +294,13 @@ var getObject = function(params) {
     });
 }
 
+/**
+ * SYNC Get the config json of all playlists available and execute callback function
+ * @param {string} group - name of the group user belongs to
+ * @param {Object} req - request object
+ * @param {Object} res - response object
+ * @param {Function} callback - callback function to execute after getting config json of all playlists available in S3
+ */
 const getPlaylists = (group, req, res, callback) => {
     const params = {
         Bucket: 'maventest1',
@@ -248,7 +314,7 @@ const getPlaylists = (group, req, res, callback) => {
         } else{
             promises = []
             for (var i = 0; i < data.CommonPrefixes.length; i++){
-                var name = data.CommonPrefixes[i].Prefix.split('/')[1]
+                var name = data.CommonPrefixes[i].Prefix.split('/')[1] // getting name of playlist
                 if ((name != 'media') && (name != 'schedules')){
                     var configParams = {
                         Bucket: 'maventest1',
@@ -263,8 +329,6 @@ const getPlaylists = (group, req, res, callback) => {
                     for (var i in results){
                         var data = results[i].Body.toString()
                         config.push(data)
-                        var playlistConfig = JSON.parse(data)
-
                     }
                     callback(config, req, res)
                 })
@@ -272,6 +336,13 @@ const getPlaylists = (group, req, res, callback) => {
     })
 }
 
+/**
+ * SYNC Get config JSON of all playlists and URLs of all unique media in all playlists. Then, execute callback function
+ * @param {string} group - c
+ * @param {Object} req - request object
+ * @param {Object} res - response object
+ * @param {Function} callback - callback function to execute after getting config json of all playlists available in S3 and the URLs for all of its unique media
+ */
 const getPlaylistsandURL = (group, req, res, callback) => {
     const params = {
         Bucket: 'maventest1',
@@ -283,6 +354,7 @@ const getPlaylistsandURL = (group, req, res, callback) => {
             console.log(err.message)
             return 'There was an error viewing your album: ' + err.message
         } else{
+            // Set up array of promises to get the config JSON of all playlists
             promises = []
             for (var i = 0; i < data.CommonPrefixes.length; i++){
                 var name = data.CommonPrefixes[i].Prefix.split('/')[1]
@@ -297,6 +369,7 @@ const getPlaylistsandURL = (group, req, res, callback) => {
             var config = []
             Promise.all(promises)
                 .then(function(results){
+                    // Extract the unique media and get any corresponding playlist which that media is in
                     var uniqueMedia = []
                     var uniquePlaylist = {}
                     for (var i in results){
@@ -309,6 +382,7 @@ const getPlaylistsandURL = (group, req, res, callback) => {
                         }
                     }
                     uniqueMedia = Array.from(new Set(uniqueMedia))
+                    // urls is a string that can be parsed into JSON 
                     urls = '{'
                     for (var i in uniqueMedia){
                         var fileParams = {
@@ -326,7 +400,15 @@ const getPlaylistsandURL = (group, req, res, callback) => {
     })
 }
 
-const getSchedulesandURL = (sched, group, req, res, callback) => {
+/**
+ * SYNC Get the config JSON of given schedule and the URLs of all unique media in that schedule. Excute callback function after that
+ * @param {string} sched - string of scheduleName
+ * @param {string} group - name of group the user belongs to
+ * @param {Object} req - request object
+ * @param {Object} res - response object
+ * @param {Function} callback - callback function to execute after getting config json of schedule given and all of its unique media URL
+ */
+const getScheduleandURL = (sched, group, req, res, callback) => {
     var promises = []
     var configParams = {
         Bucket: 'maventest1',
@@ -335,6 +417,8 @@ const getSchedulesandURL = (sched, group, req, res, callback) => {
     promises.push(getObject(configParams))
     Promise.all(promises)
         .then(function(results){
+            // uniqueMedia is array of Set of all media names
+            // uniqueSchedule is dictionary mapping mediaNames to its scheduleName and Playlist Name
             var uniqueMedia = []
             var uniqueSchedule = {}
             var schedule = JSON.parse(results[0].Body.toString())
@@ -343,6 +427,7 @@ const getSchedulesandURL = (sched, group, req, res, callback) => {
                 uniqueSchedule[Object.keys(schedule['mediaNames'])[j]] = [schedule['scheduleName'], schedule['mediaNames'][Object.keys(schedule['mediaNames'])[j]]]
             }
             uniqueMedia = Array.from(new Set(uniqueMedia))
+            // urls is a string that can be parsed into JSON
             urls = '{'
             for (var i in uniqueMedia){
                 var fileParams = {
@@ -357,6 +442,12 @@ const getSchedulesandURL = (sched, group, req, res, callback) => {
         })
 }
 
+/**
+ * SYNC Delete Folders (playlists/schedules) in S3
+ * @param {Array} folders - array of string of the folders' names
+ * @param {string} group  - name of group the user belongs to
+ * @param {boolean} schedule - true if deleting schedules, false if deleting playlists
+ */
 const deleteFolders = (folders, group, schedule) => {
     var promises = []
     if (schedule){
@@ -402,6 +493,7 @@ const deleteFolders = (folders, group, schedule) => {
                 }
             }
             if (promises.length > 0){
+                // Recursively delete subdirectories, more applicable to deleting schedules
                 Promise.all(promises)
                     .then(function(results){
                         for (var i in results){
@@ -416,75 +508,20 @@ const deleteFolders = (folders, group, schedule) => {
                         })
                     })
             }else{
+                // If no subdirectories, then delete
                 s3.deleteObjects(delParams, function(err, data) {
                     if (err) console.log(err, err.stack);
                     else console.log('delete', data);
                 })
             }
         })
-    // s3.listObjects(params, function(err, data) {
-    //     if (err) {
-    //         return 'There was an error viewing your album: ' + err.message
-    //     }else{
-    //         const delParams = {
-    //             Bucket: 'maventest1',
-    //             Delete: {Objects: []}, 
-    //         };
-    //         console.log(data.Contents,"<<<all content");
-    //         data.Contents.forEach(function(obj,index){
-    //             console.log(obj.Key,"<<<file path")
-    //             delParams.Delete.Objects.push({Key: obj.Key})
-    //         })
-    //         s3.deleteObjects(delParams, function(err, data) {
-    //             if (err) console.log(err, err.stack);
-    //             else console.log('delete', data);
-    //         })
-    //     }
-    // })
 }
 
-const getPlaylist = (playlist, group) => {
-    const params = {
-        Bucket: 'maventest1',
-        Prefix: group + '/' + playlist + '/', 
-        Delimiter: '/'
-    };
-    var dir = 'downloads/' + playlist + '/'
-        fs.mkdir(dir, {recursive: true}, function(err) {
-            if (err) {
-                if (err.code == 'EEXIST') throw(err); // Ignore the error if the folder already exists 
-            } 
-        }); 
-    s3.listObjects(params, function(err, data) {
-        if (err) {
-            return 'There was an error viewing your album: ' + err.message
-        }else{
-            console.log(data.Contents,"<<<all content");
-            data.Contents.forEach(function(obj,index){
-                console.log(obj.Key,"<<<file path")
-                const keyParams = {
-                    Bucket: 'maventest1',
-                    Key: obj.Key, 
-                };
-                var file = fs.createWriteStream(dir + obj.Key.split('/').at(-1));
-                s3.getObject(keyParams)
-                    .createReadStream()
-                    .on('error', (e) => {
-                        console.log(e)
-                        fs.rmSync(dir + obj.Key.split('/').at(-1), {
-                            force: true,
-                        });
-                        return
-                    })
-                    .pipe(file)
-                    .on('data', (data) => {
-                        // data
-                }) 
-            })
-        }
-    })
-}
-
+/**
+ * Delete media files in S3
+ * @param {Array} delFiles - Array of all media files to be deleted in S3
+ * @param {string} group - name of group user belongs to
+ */
 const deleteFiles = (delFiles, group) => {
     const delParams = {
         Bucket: 'maventest1',
@@ -502,15 +539,14 @@ const deleteFiles = (delFiles, group) => {
 
 module.exports = {
     uploadFile: uploadFile,
-    getPlaylist: getPlaylist,
     deleteFiles: deleteFiles,
-    getFiles: getFiles,
+    listFiles: listFiles,
     uploadConfig: uploadConfig,
     deleteFolders: deleteFolders,
     getPlaylists: getPlaylists,
     uploadSchedule: uploadSchedule,
-    getSchedules: getSchedules,
+    listSchedules: listSchedules,
     getFilesandURL: getFilesandURL,
     getPlaylistsandURL: getPlaylistsandURL,
-    getSchedulesandURL: getSchedulesandURL,
+    getScheduleandURL: getScheduleandURL,
 }

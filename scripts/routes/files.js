@@ -1,6 +1,6 @@
 const { express, upload } = require('../dependancies/modules')
 const { fs } = require('../dependancies/modules')
-const { getPlaylist, uploadFile, deleteFiles, getFiles, uploadConfig, deleteFolders, getPlaylists, uploadSchedule } = require('../s3/functions')
+const { uploadFile, deleteFiles, listFiles, uploadConfig, deleteFolders, getPlaylists, uploadSchedule } = require('../s3/functions')
 const { checkAuthenticated } = require('../account/permissions')
 var router = express.Router()
 
@@ -53,7 +53,7 @@ router.route('/deleteSchedules')
 
 router.route('/playlist')
     .get(checkAuthenticated, (req, res, next) => {
-        getFiles(req.user.group, req, res, function(filenames, req, res) {
+        listFiles(req.user.group, req, res, function(filenames, req, res) {
             res.render('playlist', {
                 authenticated: req.isAuthenticated(),
                 previousPage: "/command",

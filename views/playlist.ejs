@@ -2,6 +2,10 @@
 <script type="text/javascript">
     var count = [1]
     var twoTables = false
+    /**
+     * Show filenames for the user to choose to add to playlist
+     * @params {string} pos - index of the table
+     */
     function showFilenames(pos){
         var table = document.getElementById('chooseTable')
         tr = table.getElementsByTagName('tr')
@@ -17,6 +21,9 @@
         popup.style.display = 'block'
         
     }
+    /**
+     * Handle the screen configuration when clicked confirm
+     */
     function handleScreenConfig(){
         var length = $('#length').val()
         if (length != 1 && document.getElementById('splitScreen').checked){
@@ -24,8 +31,7 @@
             alert("Split-screen is only for single screens!")
             return
         }
-        console.log(document.getElementById('splitScreen').checked)
-        console.log($('#orientation').val().toUpperCase())
+        // if portrait and splitscreen, then show the 2nd table for bottom playlist
         if (document.getElementById('splitScreen').checked && $('#orientation').val().toUpperCase() == "PORTRAIT"){
             document.getElementById('screenTable1').style.display = 'block'
             document.getElementById('topScreen').textContent = "Top Playlist"
@@ -37,6 +43,10 @@
         document.getElementById('submitButton').style.display = 'block'
         document.getElementById('screenTable0').border = '1'
     }
+
+    /**
+     * Remove the last entry of the row of the playlist table indexed by pos  
+     */
     function removeRow(pos){
         if (count[pos] > 1){
             count[pos]--
@@ -44,14 +54,14 @@
         $('#screenTable' + pos + ' tbody tr:last').remove();
     }
     $(document).ready(()=>{
+        /**
+         * On submit of media choice, add it to the table. If it is an image, added another required input to get the duration to play for
+         */
         $('#chooseMedia').submit((event) => {
             event.preventDefault()
             var chosen = document.querySelector('input[name="file"]:checked').value
             var popup = document.getElementById('chooseMedia')
             var pos = popup.getAttribute('class')
-            console.log(pos)
-            console.log(parseInt(pos))
-            console.log(count)
             var addLine = "<tr> <td>" + count[parseInt(pos)] + ". </td> <td>" + chosen
             if (chosen.match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
                 var id = count[parseInt(pos)] - 1
@@ -62,9 +72,14 @@
             $('#screenTable' + pos + ' tbody').append(addLine)
             popup.style.display = 'none'
         })
+
+        /**
+         * On submit, get the playlist media in sequence as an array, screen orientation, number of screens
+         * Calculate the aspect ratio and send all these data as a post request 
+         */
         $('#playlist').submit((event)=>{
             event.preventDefault()
-
+            
             var playlists = []
             var screens = $('#length').val()
             for (var j = 0; j < 2; j++){

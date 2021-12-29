@@ -4,13 +4,12 @@ const { checkAuthenticated } = require('../account/permissions')
 const { pi } = require('../account/data')
 const { getPiState } = require('../mqtt/eventHandler')
 var router = express.Router()
-const { getSchedules } = require('../s3/functions')
-
+const { listSchedules } = require('../s3/functions')
 
 router.route('/')
     .get(checkAuthenticated, async(req, res) => {
         piState = await getPiState()
-        getSchedules(req.user.group, req, res, piState, pi, true, function(schedules, req, res, piState, pi) {
+        listSchedules(req.user.group, req, res, piState, pi, true, function(schedules, req, res, piState, pi) {
             console.log(schedules)
             console.log(piState);
             res.render('devices', { 
