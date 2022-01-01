@@ -4,10 +4,19 @@
         $('#temp').submit((event)=>{
             event.preventDefault()
             var test = $('#message').val()
-            $.post('/temperature', {
+            $.post('/mqtt/temperature', {
                 text: test,
             }, (data)=>{
-                $('#result').html(data)
+                $('#tempResult').html(data)
+            })
+        })
+        $('#retrieve').submit((event)=>{
+            event.preventDefault()
+            var playlist = $('#playlist').val()
+            $.post('/files/retrieve', {
+                playlist: playlist,
+            }, (data)=>{
+                $('#retrieveResult').html(data)
             })
         })
     })  
@@ -20,18 +29,6 @@ Temperature
     Message: <input type="text" id="message"><br>
     <input type="submit">
 </form>
-<span id="result"></span>
-
-<p>Media Upload</p>
- <form action="/upload"  enctype="multipart/form-data" method="POST">
-    <input type="file" name="files" multiple>
-    <input type="submit" value="Upload your files"/>
- </form>
-
-<p>Retrieve File</p>
-<form action="/retrieve"  enctype="multipart/form-data" method="GET">
-    <input type="text" name="filename">
-    <input type="submit" value="Get File"/>
- </form>
+<span id="tempResult"></span>
 </body>
 </html>

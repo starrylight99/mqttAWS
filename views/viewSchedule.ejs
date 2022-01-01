@@ -1,0 +1,191 @@
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js" ></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<link rel="stylesheet" href="../style.css">
+<script>
+    var schedulesConfig = []
+    var urls = {}
+    /**
+     * Preview the file onclick of its name 
+     */
+    function showFile(filename){
+        console.log(urls)
+		var image = document.getElementById('image')
+        var vidSrc = document.getElementById('vidSrc')
+        var video = document.getElementById('video')
+        var videoArea = document.getElementById('videoArea')
+        var imageArea = document.getElementById('imageArea')
+        video.pause()
+        image.setAttribute('src', '')
+        vidSrc.setAttribute('src', '')
+        $('.title').empty()
+        $('.title').append('<h4>' + filename + '</h4>')
+        if (filename.match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
+            imageArea.style.display = 'inline'
+            videoArea.style.display = 'none'
+            image.onload = function(){
+                image.setAttribute('width', 250)
+                image.setAttribute('height', image.height / image.width * 250)
+            }
+            image.setAttribute('src', urls[filename])
+        }else{
+            videoArea.style.display = 'inline'
+            imageArea.style.display = 'none'
+            vidSrc.setAttribute('src', urls[filename])
+            vidSrc.setAttribute('type', "video/" + filename.split('.')[1])
+            video.load()
+            video.play()
+            $('#video').on('loadedmetadata', function() {
+                video.setAttribute('width', 250)
+                video.setAttribute('height', this.videoHeight / this.videoWidth * 250)
+            });
+        }
+	}
+    $(document).ready(()=>{
+        schedulesConfig = JSON.parse('<%- schedule %>');
+        document.getElementsByClassName('text-xl')[0].textContent = schedulesConfig['scheduleName']
+        urls = JSON.parse('<%- urls %>');
+        
+        var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        // var eventEntry = document.getElementsByClassName('schedule_entry')
+        // for (var i = 0; i < eventEntry.length; i++){
+        //     eventEntry[i].setAttribute('id', days[i%7]+'_'+ Math.floor(i/7))
+        // }
+        var week = {
+            'Monday':[],
+            'Tuesday':[],
+            'Wednesday':[],
+            'Thursday':[],
+            'Friday':[],
+            'Saturday':[],
+            'Sunday':[],
+        }
+        /**
+         * Parse the data of the schedule into the week dictionary to split it by days instead
+         */
+        var weekKeys = Object.keys(week)
+        for (var i in schedulesConfig['schedule']){
+            for (var j in schedulesConfig['schedule'][i]['days']){
+                week[schedulesConfig['schedule'][i]['days'][j]].push({
+                    'start': schedulesConfig['schedule'][i]['startTime'],
+                    'end': schedulesConfig['schedule'][i]['endTime'],
+                    'playlist': schedulesConfig['schedule'][i]['playlists']
+                })
+            }
+        }
+        /**
+         * Add the schedule information to the event block to be displayed
+         */
+        for (var i in weekKeys){
+            for (var j in week[weekKeys[i]]){
+                var temp = parseInt(j) + 1
+                var line = '<li class="single-event" data-playlist="' + week[weekKeys[i]][j]['playlist'] + '" data-start="' + week[weekKeys[i]][j]['start'] + '" data-end="' + week[weekKeys[i]][j]['end'] + '" data-content="event-abs-circuit" data-event="event-' + temp + '"><a href="#0"><em class="event-name">' 
+                line += '</em></a></li>'
+                $('#'+ weekKeys[i]).append(line)
+            }  
+        }
+        
+    })
+</script>
+<script src="../main.js"></script> 
+
+<html>
+    <head>
+        <script>document.getElementsByTagName("html")[0].className += " js";</script>
+    </head>
+<body>
+<h1>Schedule</h1>
+<hr>
+<h1 class="text-xl"></h1>
+
+
+<div class="cd-schedule loading">
+    <div class="timeline">
+        <ul>
+            <% for (let i=0;i<24;i++) { %>
+                <% if (i<10){ %>
+                    <li><span>0<%=i%>:00</span></li>
+                    <li><span>0<%=i%>:30</span></li>
+                <% } else {%>
+                    <li><span><%=i%>:00</span></li>
+                    <li><span><%=i%>:30</span></li>
+                <% } %>
+            <% } %>  
+        </ul>
+    </div>
+
+    <div class="events">
+        <ul class="wrap">
+            <li class="events-group">
+                <div class="top-info"><span>Monday</span></div>
+                <ul class="schedule_entry" id="Monday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Tuesday</span></div>
+                <ul class="schedule_entry" id="Tuesday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Wednesday</span></div>
+                <ul class="schedule_entry" id="Wednesday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Thursday</span></div>
+                <ul class="schedule_entry" id="Thursday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Friday</span></div>
+                <ul class="schedule_entry" id="Friday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Saturday</span></div>
+                <ul class="schedule_entry" id="Saturday">
+
+                </ul>
+            </li>
+
+            <li class="events-group">
+                <div class="top-info"><span>Sunday</span></div>
+                <ul class="schedule_entry" id="Sunday">
+
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="event-modal">
+        <header class="header">
+            <div class="content">
+                <span class="event-date"></span>
+                <h3 class="event-name"></h3>
+            </div>
+
+            <div class="header-bg"></div>
+        </header>
+
+        <div class="body">
+            <div class="event-info"></div>
+            <div class="body-bg"></div>
+        </div>
+
+        <a href="#0" class="close">Close</a>
+    </div>
+
+    <div class="cover-layer"></div>
+</div> <!-- .cd-schedule -->
+
+</body>
+</html>

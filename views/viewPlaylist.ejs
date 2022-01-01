@@ -1,0 +1,136 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    var urls = []
+    var playlistNames = []
+    function showFile(filename){
+        var image = document.getElementById('image')
+        var vidSrc = document.getElementById('vidSrc')
+        var video = document.getElementById('video')
+        var videoArea = document.getElementById('videoArea')
+        var imageArea = document.getElementById('imageArea')
+        video.pause()
+        image.setAttribute('src', '')
+        vidSrc.setAttribute('src', '')
+        $('.title').empty()
+        $('.title').append('<h4>' + filename + '</h4>')
+        if (filename.match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
+            imageArea.style.display = 'block'
+            videoArea.style.display = 'none'
+            image.onload = function(){
+                image.setAttribute('width', 250)
+                image.setAttribute('height', image.height / image.width * 250)
+            }
+            image.setAttribute('src', urls[filename])
+        }else{
+            videoArea.style.display = 'block'
+            imageArea.style.display = 'none'
+            vidSrc.setAttribute('src', urls[filename])
+            vidSrc.setAttribute('type', "video/" + filename.split('.')[1])
+            video.load()
+            video.play()
+            $('#video').on('loadedmetadata', function() {
+                video.setAttribute('width', 250)
+                video.setAttribute('height', this.videoHeight / this.videoWidth * 250)
+            });
+        }
+    }
+    function delPlaylist(i){
+        console.log(playlistNames[i])
+        $.post('/files/deletePlaylists', {
+            delPlay: playlistNames[i],
+        }, (data)=>{
+            
+        })
+    }
+    $(document).ready(()=>{
+        urls = JSON.parse('<%- urls %>')
+        console.log(urls)
+        var mediaFiles = document.getElementsByClassName('mediaFiles')
+        var playlists = document.getElementsByClassName('playlistNames')
+        var delButtons = document.getElementsByClassName('delButtons')
+        for (var i = 0; i < mediaFiles.length; i++){
+            mediaFiles[i].setAttribute('onclick', 'showFile("' + mediaFiles[i].textContent +'")')
+        }
+        for (var i = 0; i < playlists.length; i++){
+            playlistNames.push(playlists[i].textContent)
+            delButtons[i].setAttribute('value', playlists[i].textContent)
+        }
+        $('#deletePlaylists').submit((event)=>{
+            event.preventDefault()
+            var playlistList = []
+            $("input:checkbox[class=delButtons]:checked").each(function(){
+                playlistList.push($(this).val());
+            })
+            $.post('/files/deletePlaylists', {
+                delPlay: playlistList,
+            }, (data)=>{
+                location.reload()
+            })
+        })
+    })  
+</script>
+ 
+<html>
+<body>
+<h1>Playlist</h1>
+<hr>
+
+<form id='deletePlaylists'>
+    <table border='1'>
+        <thead>
+            <th>Playlist Name</th>
+            <th>Screens</th>
+            <th>Orientation</th>
+            <th>Aspect Ratio</th>
+            <th>Click to preview file</th>
+            <th>Delete</th>
+        </thead>
+        <tbody>
+            <% for (var i = 0; i < config.length; i++) { %>
+                <tr>
+                    <td><p class='playlistNames'><%= config[i].playlistName %></p></td>
+                    <td><%= config[i].screens %></td>
+                    <td><%= config[i].orientation %></td>
+                    <td><%= config[i].aspectRatio[0] %> x <%= config[i].aspectRatio[1] %></td>
+                    <td>
+                        <table border='0'>
+                            <tbody>
+                                <% for (var j = 0; j < config[i].playlists.length; j++) { %>
+                                    <tr>
+                                        <td>
+                                            <p class='mediaFiles'><%= config[i].playlists[j][0] %></p>
+                                        </td>
+                                    </tr>
+                                <% }; %>
+                            </tbody>
+                        </table>
+                    </td>
+                    <td><input type='checkbox' class='delButtons'></td>
+                </tr>
+            <% }; %>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6">
+                    <input type = "submit" value = "Delete"/>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</form>
+<div id ='videoArea' style='display:none'>
+    <h3>Video: </h3>
+    <video id='video' muted>
+        <source id='vidSrc'>
+    </video>
+    <h4 class='title'></h4>
+</div>
+
+<div id ='imageArea' style='display:none'>
+    <h3>Image: </h3>
+    <img id='image'>
+    <h4 class='title'></h4>
+</div>
+
+</body>
+</html>
