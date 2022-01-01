@@ -3,3 +3,5 @@ scripts/s3/config.json
 uploads
 downloads
 .env
+pi.json
+user.json
