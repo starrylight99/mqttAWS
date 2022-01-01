@@ -6,7 +6,6 @@ var router = express.Router()
 router.route('/')
     .get(checkAuthenticated, (req,res) => {
         getPlaylistsandURL(req.user.group, req, res, function(config, urls, req, res) {
-            console.log(urls)
             res.render('viewPlaylist', {
                 authenticated: req.isAuthenticated(),
                 previousPage: "/command",

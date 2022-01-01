@@ -13,14 +13,14 @@
         vidSrc.setAttribute('src', '')
         $('.title').empty()
         $('.title').append('<h4>' + filename + '</h4>')
-        if (filename.match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
+        if (filename.split(',')[0].match(/.*\.(gif|jpe?g|bmp|png)$/igm) != null){
             imageArea.style.display = 'block'
             videoArea.style.display = 'none'
             image.onload = function(){
                 image.setAttribute('width', 250)
                 image.setAttribute('height', image.height / image.width * 250)
             }
-            image.setAttribute('src', urls[filename])
+            image.setAttribute('src', urls[filename.split(',')[0]])
         }else{
             videoArea.style.display = 'block'
             imageArea.style.display = 'none'
@@ -53,12 +53,11 @@
             $("input:checkbox[class=delButtons]:checked").each(function(){
                 playlistList.push($(this).val());
             })
-            console.log(playlistList)
-            /* $.post('/files/deletePlaylists', {
+            $.post('/files/deletePlaylists', {
                 delPlay: playlistList,
             }, (data)=>{
                 location.reload()
-            }) */
+            })
         })
     })  
 </script>
