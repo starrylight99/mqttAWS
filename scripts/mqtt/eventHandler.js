@@ -44,11 +44,12 @@ function getTemp(){
 function resetTemp(){
     temperature = undefined
 }
-async function getPiState(){
-    piState.forEach((id,pie) => {
-        pie.online = false
-    })
 
+async function getPiState(){
+    piState.forEach((pie,id) => {
+        pie.online = false
+        pie.schedules = []
+    })
     client.subscribe('webApp', (err)=> {
         if (!err) {
             client.publish('ping', 'ping')
@@ -61,17 +62,7 @@ async function getPiState(){
     await new Promise(resolve => setTimeout(resolve, 500))
     return piState
 }
-async function sendSchedule(id,schedule) {
-    client.subscribe('webApp', (err)=> {
-        if (!err) {
-            client.publish('schedule', 'schedule ' + id + ' ' + schedule)
-            console.log('sent msg "schedule"')
-        } else {
-            console.log('failed subscribe')
-            res.send('error')
-        }
-    })
-}
+
 module.exports = {
     getTemp: getTemp,
     resetTemp: resetTemp,

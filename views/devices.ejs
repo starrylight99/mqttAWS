@@ -32,30 +32,32 @@
     }
     $(document).ready(()=>{
         var idRows = document.getElementsByClassName('idRows')
-        for (var i = 0; i < idRows.length; i++){
-            var td = idRows[i].getElementsByTagName('td')
-            td[0].setAttribute('id', 'id_' + i)
-            var scheduleRows = idRows[i].getElementsByClassName('schedule')
-            var delButtons = idRows[i].getElementsByClassName('delButton')
-            var runButtons = idRows[i].getElementsByClassName('runButton')
-            var stopButtons = idRows[i].getElementsByClassName('stopButton')
-            
-            idRows[i].getElementsByTagName('select')[0].setAttribute('id', 'scheduleOptions_' + i)
-            idRows[i].getElementsByClassName('sendButton')[0].setAttribute('id', 'sendButton_' + i)
+        <% piState.forEach((pie,i) => { %>
+            <% if (pie.online == true) { %>
+                var i = <%= i %>
+                var td = idRows[i].getElementsByTagName('td')
+                td[0].setAttribute('id', 'id_' + i)
+                var scheduleRows = idRows[i].getElementsByClassName('schedule')
+                var delButtons = idRows[i].getElementsByClassName('delButton')
+                var runButtons = idRows[i].getElementsByClassName('runButton')
+                var stopButtons = idRows[i].getElementsByClassName('stopButton')
+                
+                idRows[i].getElementsByTagName('select')[0].setAttribute('id', 'scheduleOptions_' + i)
+                idRows[i].getElementsByClassName('sendButton')[0].setAttribute('id', 'sendButton_' + i)
 
-            var choices = idRows[i].getElementsByClassName('scheduleChoices')
-            for (var j = 0; j < choices.length; j++){
-                choices[j].setAttribute('value', choices[j].textContent)
-            }
-            for (var j = 0; j < scheduleRows.length; j++){
-                var td = scheduleRows[j].getElementsByTagName('td')
-                td[0].setAttribute('id', 'filename_' + i + '_' + j)
-                delButtons[j].setAttribute('id', 'button_' + i + '_' + j)
-                runButtons[j].setAttribute('id', 'runButton_' + i + '_' + j)
-                stopButtons[j].setAttribute('id', 'stopButton_' + i + '_' + j)
-            }
-        }
-        
+                var choices = idRows[i].getElementsByClassName('scheduleChoices')
+                for (var j = 0; j < choices.length; j++){
+                    choices[j].setAttribute('value', choices[j].textContent)
+                }
+                for (var j = 0; j < scheduleRows.length; j++){
+                    var td = scheduleRows[j].getElementsByTagName('td')
+                    td[0].setAttribute('id', 'filename_' + i + '_' + j)
+                    delButtons[j].setAttribute('id', 'button_' + i + '_' + j)
+                    runButtons[j].setAttribute('id', 'runButton_' + i + '_' + j)
+                    stopButtons[j].setAttribute('id', 'stopButton_' + i + '_' + j)
+                }
+            <% } %>
+        <% }) %>
     })  
 </script>
 <html>
@@ -102,16 +104,18 @@
                             </table>
                         </td>
                         <td>
-                            <form class='scheduleForm'>
-                                <select>
-                                    <option value='' disabled selected>Select Schedule</option>
-                                    <% for (var i = 0; i < schedules.length; i++) { %>
-                                        <option class="scheduleChoices" value=''><%= schedules[i] %></option>
-                                    <% }; %>
-                                </select>
-                                <input type='button' class='sendButton' onclick='sendSchedule(this)' value='Send'>
-                            </form>
-                            <span id="scheduleResult"></span>
+                            <% if (piState.get(pi.id).online == true) { %>
+                                <form class='scheduleForm'>
+                                    <select>
+                                        <option value='' disabled selected>Select Schedule</option>
+                                        <% for (var i = 0; i < schedules.length; i++) { %>
+                                            <option class="scheduleChoices" value=''><%= schedules[i] %></option>
+                                        <% }; %>
+                                    </select>
+                                    <input type='button' class='sendButton' onclick='sendSchedule(this)' value='Send'>
+                                </form>
+                                <span id="scheduleResult"></span>
+                            <% } %>
                         </td>
                     </tr>
                 <% } %>
