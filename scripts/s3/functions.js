@@ -356,8 +356,10 @@ const getPlaylistsandURL = (group, req, res, callback) => {
         } else{
             // Set up array of promises to get the config JSON of all playlists
             promises = []
+            console.log(data)
             for (var i = 0; i < data.CommonPrefixes.length; i++){
                 var name = data.CommonPrefixes[i].Prefix.split('/')[1]
+                console.log(name)
                 if ((name != 'media') && (name != 'schedules')){
                     var configParams = {
                         Bucket: 'maventest1',

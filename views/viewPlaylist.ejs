@@ -34,14 +34,6 @@
             });
         }
     }
-    function delPlaylist(i){
-        console.log(playlistNames[i])
-        $.post('/files/deletePlaylists', {
-            delPlay: playlistNames[i],
-        }, (data)=>{
-            
-        })
-    }
     $(document).ready(()=>{
         urls = JSON.parse('<%- urls %>')
         console.log(urls)
@@ -61,11 +53,12 @@
             $("input:checkbox[class=delButtons]:checked").each(function(){
                 playlistList.push($(this).val());
             })
-            $.post('/files/deletePlaylists', {
+            console.log(playlistList)
+            /* $.post('/files/deletePlaylists', {
                 delPlay: playlistList,
             }, (data)=>{
                 location.reload()
-            })
+            }) */
         })
     })  
 </script>
