@@ -8,7 +8,7 @@ const initializePassport = require('./scripts/account/passport-config')
 const app = express()
 
 // Port
-const port = 3000
+const port = 9376
 
 
 // For ajax POST parsing
