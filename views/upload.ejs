@@ -37,7 +37,6 @@
             uploadArray.pop()
         })
         $('#fileUpload').submit((event) => {
-            event.preventDefault()
             uploadArray.forEach((file)=>{
                 if (!file) {
                     alert('Not all files are uploaded yet') 
