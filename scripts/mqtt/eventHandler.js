@@ -63,15 +63,15 @@ async function getPiState(){
         if (!err) {
             client.publish('ping', 'ping')
             console.log('sent msg "ping"')
+            await new Promise(resolve => setTimeout(resolve, 500))
+            client.unsubscribe('webApp', (err)=>{
+                console.log('failed unsubscribe')
+            })
+            return piState
         } else {
             console.log('failed subscribe')
         }
     })
-    await new Promise(resolve => setTimeout(resolve, 500))
-    client.unsubscribe('webApp', (err)=>{
-        console.log('failed unsubscribe')
-    })
-    return piState
 }
 
 module.exports = {
