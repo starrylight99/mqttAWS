@@ -59,7 +59,7 @@ async function getPiState(){
         pie.schedules = []
     })
     schedules = []
-    client.subscribe('webApp', (err)=> {
+    client.subscribe('webApp', async(err)=> {
         if (!err) {
             client.publish('ping', 'ping')
             console.log('sent msg "ping"')
