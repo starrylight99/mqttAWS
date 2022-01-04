@@ -35,7 +35,7 @@ router.route('/sendSchedule')
     .post(checkAuthenticated, async(req, res) => {
         var schedule = req.body.schedule.toString().replace(/(\n)/gm,'')
         var msg = "schedule/" + req.body.id + '/' + schedule
-        msg = msg.replace(/ /g,'').replaceAll('/', ' ')
+        msg = msg.replaceAll('/', ' ')
         console.log(msg)
         client.subscribe('webApp', (err) => {
             if (!err) {
@@ -56,9 +56,9 @@ router.route('/sendSchedule')
  */
 router.route('/update')
     .post(checkAuthenticated, async(req, res) => {
-        var schedule = req.body.schedule.toString().replace(/(\n)/gm,'')
+        var schedule = req.body.schedule
         var msg = req.body.value + "/" + req.body.id + '/' + schedule
-        msg = msg.replace(/ /g,'').replaceAll('/', ' ')
+        msg = msg.replaceAll('/', ' ')
         console.log(msg)
         client.subscribe('webApp', (err) => {
             if (!err) {

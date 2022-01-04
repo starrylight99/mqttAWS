@@ -5,6 +5,7 @@ const { pi } = require('../account/data')
 var temperature = undefined
 
 const piState = new Map()
+var schedules = []
 
 pi.forEach(pie => {
     piState.set(pie.id, {
@@ -24,11 +25,16 @@ var messageHandler = (topic, message) => {
         temperature = message
     } else if (message.split(' ')[0] == 'online') {
         var split_msg = message.split(' ')
-        var schedules = []
         if (split_msg[2] != 'nil'){
-            for (var i = 2; i < split_msg.length; i++){
-                schedules.push(split_msg[i])
+            playlistName = split_msg[2]
+            if (split_msg.length > 2) {
+                for (var i = 3; i < split_msg.length; i++){
+                    playlistName += " " + split_msg[i]
+                }
             }
+            console.log(playlistName)
+            schedules.push(playlistName)
+            console.log(schedules)
         }
         piState.set(parseInt(message.split(' ')[1]), {online:true, schedules:schedules})
     }
@@ -52,6 +58,7 @@ async function getPiState(){
         pie.online = false
         pie.schedules = []
     })
+    schedules = []
     client.subscribe('webApp', (err)=> {
         if (!err) {
             client.publish('ping', 'ping')

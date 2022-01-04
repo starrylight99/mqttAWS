@@ -91,9 +91,7 @@
                             <table border='0'>
                                 <% for (var i = 0; i < piState.get(pi.id).schedules.length; i++) { %>
                                     <tr class='schedule'>
-                                        <td>
-                                            <%= piState.get(pi.id).schedules[i] %>
-                                        </td>
+                                        <td><%= piState.get(pi.id).schedules[i] %></td>
                                         <td>
                                             <input type='button' class='runButton' onclick='updateSchedule(this, "run")' value='Run'>
                                             <input type='button' class='stopButton' onclick='updateSchedule(this, "stop")' value='Stop'>
