@@ -8,13 +8,14 @@ var router = express.Router()
 /**
  * To be removed? unused 
  */
-router.route('/temperature')
+
+/* router.route('/temperature')
     .post(checkAuthenticated, async(req, res) => {
         console.log(req.body)
         resetTemp()
         client.subscribe('webApp', (err)=> {
             if (!err) {
-                client.publish('ping', req.body.text/*  + ' ' + req.user.id */)
+                client.publish('ping', req.body.text)
                 console.log('sent msg "' + req.body.text + '"')
             } else {
                 console.log('failed subscribe')
@@ -25,7 +26,7 @@ router.route('/temperature')
         var message = getTemp()
         console.log(message)
         res.send(message)
-    })
+    }) */
 
 /**
  * Message is sent in the form of "schedule {ID(of Pi)} {scheduleName}"
@@ -44,6 +45,9 @@ router.route('/sendSchedule')
                 console.log('failed subscribe')
                 res.send('error')
             }
+        })
+        client.unsubscribe('webApp', (err)=>{
+            console.log('failed unsubscribe')
         })
     })
 
@@ -64,6 +68,9 @@ router.route('/update')
                 console.log('failed subscribe')
                 res.send('error')
             }
+        })
+        client.unsubscribe('webApp', (err)=>{
+            console.log('failed unsubscribe')
         })
     })
 

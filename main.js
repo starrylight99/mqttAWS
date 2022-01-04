@@ -59,7 +59,6 @@ app.delete('/logout', (req, res) => {
     res.redirect('/login')
 })
 
-app.use('/command', commandRoute)
 app.use('/files', filesRoute)
 app.use('/mqtt', mqttRoute)
 app.use('/upload', uploadRoute)

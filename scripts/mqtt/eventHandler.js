@@ -36,7 +36,9 @@ var messageHandler = (topic, message) => {
 }
 
 client.on('message', messageHandler)
-
+client.on('disconnect', ()=>{
+    console.log('Disconnected')
+})
 function getTemp(){
     return temperature
 }
@@ -56,10 +58,12 @@ async function getPiState(){
             console.log('sent msg "ping"')
         } else {
             console.log('failed subscribe')
-            res.send('error')
         }
     })
     await new Promise(resolve => setTimeout(resolve, 500))
+    client.unsubscribe('webApp', (err)=>{
+        console.log('failed unsubscribe')
+    })
     return piState
 }
 
