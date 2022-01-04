@@ -41,7 +41,6 @@ app.listen(port)
 // Routes
 var homeRoute = require('./scripts/routes/home')
 var loginRoute = require('./scripts/routes/login')
-var commandRoute = require('./scripts/routes/command')
 var filesRoute = require('./scripts/routes/files')
 var mqttRoute = require('./scripts/routes/mqtt')
 var uploadRoute = require('./scripts/routes/upload')
