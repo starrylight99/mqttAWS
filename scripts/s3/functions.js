@@ -133,6 +133,7 @@ const uploadConfig = (file, playlistName, group) => {
     fs.createWriteStream('uploads/'+ group + '_' + playlistName + '_config.json');
     fs.writeFileSync('uploads/'+ group + '_' + playlistName + '_config.json', JSON.stringify(file))
     var fileContent = fs.readFileSync('uploads/'+ group + '_' + playlistName + '_config.json');
+    console.log(group + '/' + playlistName + '/' + playlistName + '_config.json')
     const params = {
         Bucket: 'maventest1',
         Key: group + '/' + playlistName + '/' + playlistName + '_config.json', 

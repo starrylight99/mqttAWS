@@ -68,9 +68,6 @@ async function getPiState(){
         }
     })
     await new Promise(resolve => setTimeout(resolve, 500))
-    client.unsubscribe('webApp', (err)=>{
-        console.log('failed unsubscribe')
-    })
     return piState
 }
 
