@@ -1,6 +1,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
     var fileCount = 1
+    var uploadArray = [false]
     function handleFiles() {
         const file = $(this)[0].files[0]
         var parentId = $(this).parent()[0].id
@@ -12,7 +13,8 @@
             $('#'+parentId).find("progress")[0].value = Math.round(percent);
         }, false);
         ajax.addEventListener("load", function(event){
-            $('#'+parentId).find("progress")[0].value = 0;
+            /* $('#'+parentId).find("progress")[0].value = 0; */
+            uploadArray[parseInt(parentId) - 1] = true
         }, false);
         ajax.open("POST", "file_upload_parser.php"); 
         ajax.send(formData);
@@ -28,9 +30,19 @@
             addUpload += "</tr>";
             $("table tbody").append(addUpload);
             $("#"+fileCount).children().first().change(handleFiles);
+            uploadArray.push(false)
         });
         $('#removerow').click(function(){
             $('#uploadTable tbody tr:last').remove();
+            uploadArray.pop()
+        })
+        $('#fileUpload').submit((event) => {
+            event.preventDefault()
+            uploadArray.forEach((file)=>{
+                if (!file) return false
+                alert('Not all files are uploaded yet')
+            })
+            return true
         })
     });
 </script>
@@ -41,7 +53,7 @@
     <center>
     <h1>File Upload</h1>
     <hr>
-    <form method = "POST" action = "/files/upload" enctype = "multipart/form-data">
+    <form id="fileUpload" method = "POST" action = "/files/upload" enctype = "multipart/form-data">
     <table id='uploadTable' border ="1">
         <thead>
             <tr>
