@@ -37,13 +37,14 @@
             uploadArray.pop()
         })
         $('#fileUpload').submit((event) => {
+            flag = true
             uploadArray.forEach((file)=>{
                 if (!file) {
-                    alert('Not all files are uploaded yet') 
-                    return false
+                    alert('Not all files are uploaded yet')
+                    flag = false
                 }
             })
-            return true
+            return flag
         })
     });
 </script>
