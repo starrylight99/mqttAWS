@@ -128,7 +128,8 @@
             }
             console.log(aspectRatio)
             var playlistName = $('#playlistName').val()
-            if (playlistName.endsWith('')){
+            if (playlistName.endsWith(' ')){
+                console.log("'"+playlistName+"'")
                 alert("Playlist name cannot end with space")
                 return
             }
