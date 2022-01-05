@@ -16,7 +16,7 @@
             id: id,
             value: value
         }, (data)=>{
-            $('#tempResult').html(data)
+            if (data == 'success') location.reload()
         })
     }
     function sendSchedule(e){
@@ -27,7 +27,7 @@
                 schedule: schedule,
                 id: id
             }, (data) => {
-                $('#scheduleResult').html(data)
+                if (data == 'success') location.reload()
             })
     }
     $(document).ready(()=>{

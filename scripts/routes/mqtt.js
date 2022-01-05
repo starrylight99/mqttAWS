@@ -14,10 +14,12 @@ router.route('/sendSchedule')
         var msg = "schedule/" + req.body.id + '/' + schedule
         msg = msg.replaceAll('/', ' ')
         console.log(msg)
-        client.subscribe('webApp', (err) => {
+        client.subscribe('webApp', async(err) => {
             if (!err) {
                 client.publish('schedule', msg)
                 console.log('sent msg "' + msg + '"')
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                res.send('success')
             }else {
                 console.log('failed subscribe')
                 res.send('error')
@@ -34,10 +36,12 @@ router.route('/update')
         var msg = req.body.value + "/" + req.body.id + '/' + schedule
         msg = msg.replaceAll('/', ' ')
         console.log(msg)
-        client.subscribe('webApp', (err) => {
+        client.subscribe('webApp', async(err) => {
             if (!err) {
                 client.publish('schedule', msg)
                 console.log('sent msg "' + msg + '"')
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                res.send('success')
             }else {
                 console.log('failed subscribe')
                 res.send('error')
