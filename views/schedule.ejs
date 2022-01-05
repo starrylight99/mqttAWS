@@ -227,6 +227,10 @@
             }
             uniquePlaylist = Array.from(new Set(uniquePlaylist))
             var scheduleName = $('#scheduleName').val()
+            if (playlistName.endsWith('')){
+                alert("Playlist name cannot end with space")
+                return
+            }
             $.post('/files/createSchedule', {
                 orientation: orientation,
                 totalScreens: totalScreens,
