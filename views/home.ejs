@@ -3,9 +3,15 @@
     <h1>Hi <%= name %></h1>
     <h3>Role: <%= role %></h3>
     <br><br>
+    <% if (role == 'superuser') { %>
+    <form method = "GET" action = "/admin" enctype = "multipart/form-data" >
+        <input type="submit" type="text" value="Admin">
+    </form>
+    <% } else { %>
     <form method = "GET" action = "/devices" enctype = "multipart/form-data" >
         <input type="submit" type="text" value="Devices">
     </form>
+    <% } %>
     <br>
     <form method = "GET" action = "/upload" enctype = "multipart/form-data" >
         <input type="submit" type="text" value="Upload Media">

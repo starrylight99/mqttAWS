@@ -1,0 +1,91 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+    var devicesId = []
+    <% piArray.forEach((pi) => { %>
+        devicesId.push(<%=pi.id%>)
+    <% }) %>
+    $(document).ready(function(){
+        $('#create').submit((event) => {
+            event.preventDefault()
+            $.post('/admin/manageDevices', {
+                action: 'Add',
+                name: $('#createName').val(),
+                group: $('#createGroup').val(),
+                location: $('#createLocation').val()
+            }, function(data){
+                location.reload()
+            })
+        })
+        $('#delete').submit((event) => {
+            event.preventDefault()
+            var piIdArr = []
+            devicesId.forEach((id) => {
+                if ($('#'+ id).is(':checked')) piIdArr.push(id)
+            })
+            $.post('/admin/manageDevices', {
+                action: 'Delete',
+                piId: piIdArr
+            }, function(data){
+                location.reload()
+            })
+        })
+    });
+</script>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    </head>
+    <body>
+        <center>
+        <h1>Admin</h1>
+        <hr>
+        <form id="create" method = "POST" action = "/admin/manageDevices" enctype = "multipart/form-data">
+        <table border ="1">
+            <thead>
+                <tr>
+                    <th>Name</hr>
+                    <th>Group (Company)</th>
+                    <th>Location / Subgroup</th>
+                </tr>
+            <thead>
+            <tbody>
+                <tr>
+                    <td><input id = 'createName' type = 'text' name = 'name'/></td>
+                    <td><input id = 'createGroup' type = 'text' name = 'group'/></td>
+                    <td><input id = 'createLocation' type = 'text' name = 'location'/></td>
+                </tr>
+            </tbody>
+        </table>
+        <hr>
+        <input type = "submit" name= "action" value = "Add"/>
+        </form>
+        <h2>Pi list</h2>
+        <form id="delete" method = "POST" action = "/admin/manageDevices" enctype = "multipart/form-data">
+            <table border ="1">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</hr>
+                        <th>Group</th>
+                        <th>Location</th>
+                        <th>Delete</th>
+                    </tr>
+                <thead>
+                <tbody>
+                    <% piArray.forEach(pi => { %>
+                        <tr>
+                            <td><%= pi.id  %></td>
+                            <td><%= pi.name %></td>
+                            <td><%= pi.group %></td>
+                            <td><%= pi.location %></td>
+                            <td>
+                                <input id="<%= pi.id %>" type="checkbox" name="piId">
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+            <hr>
+            <input type = "submit" name= "action" value = "Delete"/>
+        </form>
+        </center>
+    </body>

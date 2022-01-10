@@ -70,5 +70,7 @@ users.forEach(element => {
 
 module.exports = {
     users: users,
-    pi: pi
+    pi: pi,
+    piDb: piDb,
+    userDb: userDb
 }
