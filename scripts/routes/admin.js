@@ -2,6 +2,9 @@ const { express } = require('../dependancies/modules')
 const { ROLE } = require('../account/role')
 const { checkAuthenticated, authRole } = require('../account/permissions')
 const { pi,piDb } = require('../account/data')
+const { getPiState } = require('../mqtt/eventHandler')
+const { listSchedules } = require('../s3/functions')
+
 var router = express.Router()
 
 router.route('/')
@@ -42,52 +45,56 @@ router.route('/manageDevices')
                 break
         }
     })
-/* 
-router.route('/view')
-    .get(checkAuthenticated, authRole(ROLE.SUPERUSER), allowConn, async(req, res) => {
-        setUserDevices(req)
-        await getPowerStatus(req)
-        await getScreenStatus(req)
-        await getStorageStatus(req)
+
+router.route('/devices')
+    .get(checkAuthenticated, authRole(ROLE.SUPERUSER),async(req, res) => {
         piGroup = []
-        for (var pi of ssh){
+        for (var device of pi){
             if (piGroup.length == 0){
                 piGroup.push({
-                    group: pi.group,
+                    group: device.group,
                     location: new Set([
-                        pi.location
+                        device.location
                     ])
                 })
             } else {
                 loop:
                     {
                         for (var group of piGroup){
-                            if (group.group == pi.group){
-                                group.location.add(pi.location)
+                            if (group.group == device.group){
+                                group.location.add(device.location)
                                 break loop
                             }
                         }
                         piGroup.push({
-                            group: pi.group,
+                            group: device.group,
                             location: new Set([
-                                pi.location
+                                device.location
                             ])
                         })
                     }
             }
         }
-        res.render('adminView',{
-            piArray: ssh, 
+        res.render('adminDevices',{
+            piArray: pi, 
             piGroup: piGroup,
             authenticated: req.isAuthenticated(),
             previousPage: "/admin"
         })
     })
-    .post(checkAuthenticated, authRole(ROLE.SUPERUSER), checkConn, async(req,res) => {
+    .post(checkAuthenticated, authRole(ROLE.SUPERUSER), async(req,res) => {
         console.log(req.body)
         switch(req.body.action) {
-            case 'Upload': // Upload new playlist
-                res.redirect('/upload/'+req.body.piId)
+            case 'Group': // Upload new playlist
+                piState = await getPiState()
+                listSchedules(req.body.group, req, res, piState, pi, true, function(schedules, req, res, piState, pi) {
+                    console.log(schedules)
+                    console.log(piState);
+                    res.send({
+                        piState: [...piState],
+                        schedules: schedules
+                    })
+                })
                 break
             case 'Manage': // Manage selected pi: generate/start/stop/status
                 res.redirect('/playlist/'+req.body.piId)
@@ -98,7 +105,7 @@ router.route('/view')
                 break
         }
     })
-router.route('/users')
+/* router.route('/users')
     .get(checkAuthenticated, authRole(ROLE.SUPERUSER), (req, res) => {
         res.render('adminUsers', {
             userArray: users,

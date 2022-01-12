@@ -1,0 +1,145 @@
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function($){
+        var group = document.getElementById("group")
+        var addGroup = '';
+        var groupInput;
+        var piArray = <%- JSON.stringify(piArray) %>
+        <% piGroup.forEach(group => { %>
+            addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
+        <% }); %>
+        $(group).append(addGroup)
+        $('body').on('click', '#submit', function() {
+            var form = $(this).parent().parent().find('form')
+            var inputAction = $("<input>")
+                .attr("type", "hidden")
+                .attr("name", "action")
+                .val($(this)[0].value);
+            var inputPiId = $("<input>")
+                .attr("type", "hidden")
+                .attr("name", "piId")
+                .val($(this).parent().parent()[0].id);
+            $(form).append(inputPiId);
+            $(form).append(inputAction);
+            $(form).submit();
+        });
+        $("#getGroup").click(function(){
+            var locationSelect = document.getElementById("location")
+            groupInput = document.getElementById("group").value
+            var addLocation = ''
+            for (let i = locationSelect.options.length - 1; i >= 0; i--) {
+                locationSelect.options[i] = null;
+            }
+            <% piGroup.forEach(group => { %>
+                if (groupInput == "<%= group.group %>"){
+                    <% for (var location of group.location) {%>
+                        addLocation += "<option value='" + "<%= location %>" + "'>" + "<%= location %>" +"</option>"
+                    <% } %>
+                }
+            <% }); %>
+            
+            $(locationSelect).append(addLocation)
+        })
+        $("#getLocation").click(async function(){
+            var locationInput = document.getElementById("location").value
+            var locationTable = document.getElementById("locationTable")
+
+            while(locationTable.rows.length>0){
+                locationTable.deleteRow(0)
+            }
+            data = await $.post('/admin/devices', {
+                action: 'Group',
+                group: groupInput
+            }).promise() 
+
+            var piStateArr = data['piState']
+            var schedules = data['schedules']
+            var piState = new Map()
+            piStateArr.forEach((pi)=>{
+                piState.set(pi[0], {
+                    online: pi[1]['online'],
+                    schedules: pi[1]['schedules']
+                })
+            })
+            var addPi = '';
+            piArray.forEach(pi => {
+                if (locationInput == pi.location) {
+                    addPi += "<tr class='idRows'>"
+                    addPi += "<td>"+pi.id+"</td>"
+                    addPi += "<td>"+pi.name+"</td>"
+                    addPi += "<td>"+pi.group+"</td>"
+                    addPi += "<td>"+pi.location+"</td>"
+                    if (piState.get(pi.id).online){
+                        addPi += "<td>online</td>"
+                    } else {
+                        addPi += "<td>offline</td>"
+                    }
+                    addPi += "<td>"
+                    addPi += "<table border='0'>"
+                    for (var i = 0; i < piState.get(pi.id).schedules.length; i++) {
+                        addPi += "<tr class='schedule'>"
+                        addPi += "<td>"+piState.get(pi.id).schedules[i]+"</td>"
+                        addPi += "<td>"
+                        addPi += "<input type='button' class='runButton' onclick='updateSchedule(this, 'run')' value='Run'>"
+                        addPi += "<input type='button' class='stopButton' onclick='updateSchedule(this, 'stop')' value='Stop'>"
+                        addPi += "<input type='button' class='delButton' onclick='updateSchedule(this, 'delete')' value='Delete'"
+                        addPi += "</td>"
+                        addPi += "</tr>"
+                    }
+                    addPi += "</table>"
+                    addPi += "</td>"
+                    addPi += "<td>"
+                    if (piState.get(pi.id).online == true) {
+                        addPi += "<form class='scheduleForm'>"
+                        addPi += "<select>"
+                        addPi += "<option value='' disabled selected>Select Schedule</option>"
+                        for (var i = 0; i < schedules.length; i++) {
+                            addPi += "<option class='scheduleChoices' value=''>"+schedules[i]+"</option>"
+                        }
+                        addPi += "</select>"
+                        addPi += "<input type='button' class='sendButton' onclick='sendSchedule(this)' value='Send'>"
+                        addPi += "</form>"
+                        addPi += "<span id='scheduleResult'></span>"
+                        addPi += "</td>"
+                        addPi += "</tr>"
+                    }
+                }
+            })
+            $(locationTable).append(addPi)
+        });
+    });
+</script>
+</head>
+<body>
+    <center>
+    <h1>Admin View</h1>
+    <hr>
+
+    <label for="group">Group Name: </label>
+    <select name="Group" id="group"></select>
+    <input type = "button" value = "Get Group" id="getGroup"><br><br>
+
+    <label for="location">Location Name: </label>
+    <select name="Location" id="location"></select>
+    <input type = "button" value = "Get Location" id="getLocation"><br><br>
+
+    <table border ="1">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Schedules</th>
+                <th>Upload Schedule</th>
+            </tr>
+        <thead>
+        <tbody>
+        </tbody>
+        <tfoot id = "locationTable"></tfoot>
+    </table>
+    <hr>
+    </center>
+</body>
