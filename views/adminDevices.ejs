@@ -1,6 +1,33 @@
 <head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
+    function updateSchedule(e, value){
+        console.log(e)
+        console.log(e.id)
+        var i = e.id.split('_')[1]
+        var j = e.id.split('_')[2]
+        console.log('filename_' + i + '_' + j)
+        var schedule = document.getElementById('filename_' + i + '_' + j).textContent
+        var id = document.getElementById('id_' + i).textContent
+        $.post('/mqtt/update', {
+            schedule: schedule,
+            id: id,
+            value: value
+        }, (data)=>{
+            if (data == 'success') location.reload()
+        })
+    }
+    function sendSchedule(e){
+        var i = e.id.split('_')[1]
+        var schedule = $('#scheduleOptions_' + i).val()
+        var id = document.getElementById('id_' + i).textContent
+        $.post('/mqtt/sendSchedule', {
+                schedule: schedule,
+                id: id
+            }, (data) => {
+                if (data == 'success') location.reload()
+            })
+    }
     $(document).ready(function($){
         var group = document.getElementById("group")
         var addGroup = '';

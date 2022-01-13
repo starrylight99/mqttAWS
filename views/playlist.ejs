@@ -54,6 +54,29 @@
         $('#screenTable' + pos + ' tbody tr:last').remove();
     }
     $(document).ready(()=>{
+        <% if (role == 'superuser') {%>
+            var addGroup = '';
+            <% piGroup.forEach(group => { %>
+                addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
+            <% }); %>
+            $(document.getElementById("group")).append(addGroup)
+            
+            $("#getGroup").click(function(){
+                groupInput = document.getElementById("group").value
+
+                tableRadio = $('#chooseTable')
+                tableRadio.empty()
+                $.post('/files/playlist', {
+                    group: groupInput
+                }, function(data){
+                    addMedia = "<tr><th>Media Files</th></tr>"
+                    for (var i=0;i<data['filenames'].length;i++){
+                        addMedia += "<tr><td><input type='radio' name='file'>" +data['filenames'][i] + "</td></tr>"
+                    }
+                    tableRadio.append(addMedia)
+                })
+            })
+        <% } %>
         /**
          * On submit of media choice, add it to the table. If it is an image, added another required input to get the duration to play for
          */
@@ -133,18 +156,30 @@
                 alert("Playlist name cannot end with space")
                 return
             }
-
-            $.post('/files/createPlaylist', {
-                playlists: playlists,
-                screens: screens,
-                orientation: orientation,
-                playlistName: playlistName,
-                aspectRatio: aspectRatio,
-                splitScreen: twoTables
-            }, function(data){
-                location.reload()
-                //$('#playlistResult').html(data)
-            })
+            if (document.getElementById('group') != null) {
+                $.post('/files/createPlaylist', {
+                    playlists: playlists,
+                    screens: screens,
+                    orientation: orientation,
+                    playlistName: playlistName,
+                    aspectRatio: aspectRatio,
+                    splitScreen: twoTables,
+                    group: document.getElementById('group').value
+                }, function(data){
+                    location.reload()
+                })
+            } else {
+                $.post('/files/createPlaylist', {
+                    playlists: playlists,
+                    screens: screens,
+                    orientation: orientation,
+                    playlistName: playlistName,
+                    aspectRatio: aspectRatio,
+                    splitScreen: twoTables
+                }, function(data){
+                    location.reload()
+                })
+            }
         })
     })
 </script>
@@ -155,18 +190,25 @@
     <center>
     <h1>Create Playlist</h1>
     <hr>
+    <% if (role == 'superuser') { %>
+        <label for="group">Group Name: </label>
+        <select name="Group" id="group"></select>
+        <input type = "button" value = "Get Group" id="getGroup"><br><br>
+    <% } %> 
     <form id="chooseMedia" style="display:none;position:absolute;left:50%; top:50%; transform: translate(-50%, -50%);border:3px solid black;z-index:9;background-color:gray">
         <table id='chooseTable'>   
             <tr>
                 <th>Media Files</th>
             </tr>
-            <% for (var i = 0; i < filenames.length; i++) { %>
-                <tr>
-                    <td>
-                        <input type='radio' name='file'><%= filenames[i] %>
-                    </td>
-                </tr>
-            <% }; %>
+            <% if (role != 'superuser') { %>
+                <% for (var i = 0; i < filenames.length; i++) { %>
+                    <tr>
+                        <td>
+                            <input type='radio' name='file'><%= filenames[i] %>
+                        </td>
+                    </tr>
+                <% }; %>
+            <% } %> 
         </table>
         <input type = "submit" value = "Choose"/>
     </form>

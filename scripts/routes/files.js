@@ -1,16 +1,13 @@
 const { express, upload } = require('../dependancies/modules')
 const { fs } = require('../dependancies/modules')
 const { uploadFile, deleteFiles, listFiles, uploadConfig, deleteFolders, getPlaylists, uploadSchedule } = require('../s3/functions')
-const { checkAuthenticated } = require('../account/permissions')
+const { checkAuthenticated, authRole } = require('../account/permissions')
+const { ROLE } = require('../account/role')
+const { getPiGroup } = require('../helper/functions')
+
 var router = express.Router()
 
 router.route('/upload')
-    .get(checkAuthenticated, (req, res) => {
-        res.render('upload', {
-            authenticated: req.isAuthenticated(),
-            previousPage: "/"
-        })
-    })
     .post(checkAuthenticated, upload.array('file'), async(req, res) => {
         const files = req.files
         console.log("upload: ", req.user)
@@ -19,11 +16,16 @@ router.route('/upload')
             error.httpStatusCode = 400
             return next(error)
         }
-
-        for (let i = 0; i < files.length; i++){
-            uploadFile(files[i], req.user.group)
+        if (req.user.role != ROLE.SUPERUSER){
+            for (let i = 0; i < files.length; i++){
+                uploadFile(files[i], req.user.group)
+            }
+        } else {
+            for (let i = 0; i < files.length; i++){
+                uploadFile(files[i], req.body.group)
+            }
         }
-        res.redirect('/upload')
+        res.send('success')
     })
 
 router.route('/deleteFiles')
@@ -53,10 +55,28 @@ router.route('/deleteSchedules')
 
 router.route('/playlist')
     .get(checkAuthenticated, (req, res, next) => {
-        listFiles(req.user.group, req, res, function(filenames, req, res) {
+        if (req.user.role != ROLE.SUPERUSER){
+            listFiles(req.user.group, req, res, function(filenames, req, res) {
+                res.render('playlist', {
+                    role: req.user.role,
+                    authenticated: req.isAuthenticated(),
+                    previousPage: "/command",
+                    filenames: filenames
+                })
+            })
+        } else {
+            piGroup = getPiGroup()
             res.render('playlist', {
+                role: req.user.role,
                 authenticated: req.isAuthenticated(),
                 previousPage: "/command",
+                piGroup: piGroup
+            })
+        }
+    })
+    .post(checkAuthenticated, authRole(ROLE.SUPERUSER), (req, res, next) => {
+        listFiles(req.body.group, req, res, function(filenames, req, res) {
+            res.send({
                 filenames: filenames
             })
         })
@@ -72,20 +92,47 @@ router.route('/createPlaylist')
             "orientation": req.body.orientation,
             "splitScreen": req.body.splitScreen,
         }
-        uploadConfig(test, req.body.playlistName, req.user.group)
+        if (req.body.group != undefined) {
+            uploadConfig(test, req.body.playlistName, req.body.group)
+        } else {
+            uploadConfig(test, req.body.playlistName, req.user.group)
+        }
         res.send('success')
     })
 
 router.route('/schedule')
     .get(checkAuthenticated, (req, res, next) => {
-        getPlaylists(req.user.group, req, res, function(config, req, res) {
+        if (req.user.role != ROLE.SUPERUSER){
+            getPlaylists(req.user.group, req, res, function(config, req, res) {
+                for (var i in config){
+                    config[i] = JSON.parse(config[i])
+                    console.log(config[i]['playlists'])
+                }
+                res.render('schedule', {
+                    role: req.user.role,
+                    authenticated: req.isAuthenticated(),
+                    previousPage: "/command",
+                    config: config
+                })
+            })
+        } else {
+            piGroup = getPiGroup()
+            res.render('schedule', {
+                role: req.user.role,
+                authenticated: req.isAuthenticated(),
+                previousPage: "/command",
+                piGroup: piGroup
+            })
+        }
+    })
+    .post(checkAuthenticated, authRole(ROLE.SUPERUSER), (req, res, next) => {
+        console.log(req.body.group)
+        getPlaylists(req.body.group, req, res, function(config, req, res) {
             for (var i in config){
                 config[i] = JSON.parse(config[i])
                 console.log(config[i]['playlists'])
             }
-            res.render('schedule', {
-                authenticated: req.isAuthenticated(),
-                previousPage: "/command",
+            res.send({
                 config: config
             })
         })

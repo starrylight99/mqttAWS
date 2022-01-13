@@ -1,0 +1,69 @@
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var usersId = []
+        <% userArray.forEach((user) => { %>
+            usersId.push(<%=user.id%>)
+        <% }) %>
+        $(document).ready(function(){
+            $('#delete').submit((event) => {
+                event.preventDefault()
+                var userIdArr = []
+                usersId.forEach((id) => {
+                    if ($('#'+ id).is(':checked')) userIdArr.push(id)
+                })
+                console.log(userIdArr)
+                $.post('/admin/manageUsers', {
+                    action: 'Delete',
+                    userId: userIdArr
+                }, function(data){
+                    if (data == 'success') location.reload()
+                })
+            })
+        })
+    </script>
+</head>
+
+
+<body>
+    <center>
+    <h1>Users</h1>
+    <hr>
+    <form id="delete" method = "POST" action = "/admin/manageUsers" enctype = "multipart/form-data">
+        <table border ="1">
+            <thead>
+                <tr>
+                    <th>Id</hr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Group</th>
+                    <th>Location</th>
+                    <th>Delete</th>
+                </tr>
+            <thead>
+            <tbody>
+                <% userArray.forEach(user => { %>
+                    <tr>
+                        <td><%= user.id  %></td>
+                        <td><%= user.name %></td>
+                        <td><%= user.email %></td>
+                        <td><%= user.role %></td>
+                        <td><%= user.group %></td>
+                        <td><%= user.location %></td>
+                        <td>
+                            <input type="checkbox" name="userId" id="<%= user.id %>">
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <hr>
+        <input type = "submit" name= "action" value = "Delete"/>
+    </form>
+    <br>
+    <form method = "GET" action = "/admin/register" enctype = "multipart/form-data" >
+        <input type="submit" type="text" value="Register Account">
+    </form>
+    </center>
+</body>

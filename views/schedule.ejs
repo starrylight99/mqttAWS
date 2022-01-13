@@ -62,6 +62,7 @@
         $("#timeblock_" + lineCount + " tbody").append(addLine)
     }
     function removeLastPlaylist(lineCount){
+        console.log(playlistCount)
         if (playlistCount[lineCount] >0){
             playlistCount[lineCount]--
         }
@@ -132,11 +133,11 @@
         $('#scheduleTableBody').append(addLine)
     }
     function removeLastTime(){
+        playlistCount.pop()
         if (lineCount > 0){
             lineCount--
         }
-        
-        $('#scheduleTableBody tr:last').remove();
+        document.getElementById('scheduleTableBody').deleteRow(document.getElementById('scheduleTableBody').rows.length -1);
     }
     $(document).ready(()=>{
         var info = document.getElementsByClassName("playlistInfo")
@@ -150,7 +151,18 @@
             screens[i].setAttribute('id', 'screens_' + i)
             orientations[i].setAttribute('id', 'orientation_' + i)
         }
-        $("#subConfig").click((event) => {
+
+        <% if (role == 'superuser') {%>
+            var addGroup = '';
+            <% piGroup.forEach(group => { %>
+                addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
+            <% }); %>
+            $(document.getElementById("group")).append(addGroup)
+        <% } %>
+        
+        function resetSchedule(){
+            scheduleForm = $('#schedule')
+            scheduleForm.empty()
             totalScreens = $('#totalScreens').val()
             orientation = $('#orientation').val()
             document.getElementById("afterScreenConfig").style.display = "block"
@@ -160,6 +172,12 @@
             }else{
                 aspect_ratio = [9,16]
             }
+            playlistNames = []
+            playlistAR = []
+            playlistCount = []
+            totalScreensUsage = []
+            validated = []
+            lineCount = 0
             for (var i = 0; i < names.length; i++){
                 if (orientations[i].textContent.split(' ')[1].toUpperCase() == orientation.toUpperCase()){
                     playlistNames.push(names[i].textContent)
@@ -175,6 +193,91 @@
                     info[i].style.display = "none"
                 }
             }
+            addForm = "<h2>Scheduling Table</h2>"
+            addForm += "<label>Schedule Name</label>"
+            addForm += "<input type ='text' id='scheduleName' required/>"
+            addForm += "<table class='scheduleTable' border='1'>"
+            addForm += "<thead>"
+            addForm += "<th>Day</th>"
+            addForm += "<th>Time</th>"
+            addForm += "<th>Playlists</th>"
+            addForm += "<th>Validate</th>"
+            addForm += "</thead>"
+            addForm += "<tbody id='scheduleTableBody'>"
+            addForm += "</tbody>"
+            addForm += "<tfoot>"
+            addForm += "<tr>"
+            addForm += "<td colspan='4'>"
+            addForm += "<input type='button' onclick='addEntry()' value='Add new entry'/>"
+            addForm += "<input type='button' onclick='removeLastTime()' value='Remove last entry'>"
+            addForm += "</td>"
+            addForm += "</tr>"
+            addForm += "</tfoot>"
+            addForm += "</table>"
+            addForm += "<input type = 'submit' value = 'Submit'/>"
+            scheduleForm.append(addForm)
+        }
+
+        function resetPlaylistAndSchedule(){
+            var addPL = '';
+            groupInput = document.getElementById("group").value
+
+            afterScreenConfig = $('#afterScreenConfig')
+            afterScreenConfig.empty()
+            $.post('/files/schedule', {
+                group: groupInput
+            }, function(data){
+                config = data['config']
+                addPL = "<h2>Playlists:</h2>"
+                addPL += "<h4>For more info, click on the playlist's name</h4>"
+
+                for (var i = 0; i < config.length; i++) {
+                    addPL += "<h3 class='playlistName' onclick='onClickList(this)'>"+config[i].playlistName+"</h3>"
+                    addPL += "<div class='playlistInfo' style='display:none; border: 2px solid black'>"
+                    addPL += "<h5>Playlist:</h5>"
+                    addPL += "<ol>"
+                    if (config[i].playlists.length == 2) {
+                        for (var j = 0; j < config[i].playlists.length; j++) {
+                            if (j == 0) {
+                                addPL += "<h6>Top Playlist:</h6>"
+                            } else {
+                                addPL += "<h6>Bottoms Playlist:</h6>"
+                            }
+                            for (var k = 0; k < config[i].playlists[j].length; k++) {
+                                addPL += "<li>"+config[i].playlists[j][k]+"</li>"
+                            }
+                        }
+                    } else {
+                        for (var k = 0; k < config[i].playlists[0].length; k++) {     
+                            addPL += "<li>"+config[i].playlists[0][k]+"</li>"
+                        }
+                    }
+                    addPL += "</ol>"
+                    addPL += "<h5 class='playlistScreens'>Number of Screens used: "+config[i].screens+"</h5>"
+                    addPL += "<h5 class='playlistOrientation'>Orientation: "+config[i].orientation+"</h5>"
+                    addPL += "<h5 class='playlistAspectRatio'>Aspect Ratio: "+config[i].aspectRatio[0]+" x "+config[i].aspectRatio[1]+"</h5>"
+                }
+                afterScreenConfig.append(addPL)
+                names = document.getElementsByClassName('playlistName')
+                screens = document.getElementsByClassName('playlistScreens')
+                orientations = document.getElementsByClassName('playlistOrientation')
+                aspectRatios = document.getElementsByClassName('playlistAspectRatio')
+                for (var i = 0; i < names.length; i++){
+                    info[i].setAttribute('id', 'div_' + i)
+                    names[i].setAttribute('id', 'name_' + i)
+                    screens[i].setAttribute('id', 'screens_' + i)
+                    orientations[i].setAttribute('id', 'orientation_' + i)
+                }
+                resetSchedule()
+            })
+        }
+        
+        $("#subConfig").click((event) => {
+            <% if (role == 'superuser') { %>
+                resetPlaylistAndSchedule()
+            <% } else { %>
+                resetSchedule()
+            <% } %>
         })
         $('#schedule').submit((event) => {
             event.preventDefault()
@@ -249,6 +352,11 @@
     <center>
         <h1>Schedule</h1>
         <hr>
+        <% if (role == 'superuser') { %>
+            <label for="group">Group Name: </label>
+            <select name="Group" id="group"></select>
+            <br><br>
+        <% } %>
         <form id='screensConfig'>
             <label for='screenConfig'>Enter total number of screens:</label>
             <input type="number" id='totalScreens' placeholder="Number of Screen(s)">
@@ -264,37 +372,39 @@
         <div id='afterScreenConfig' style="display: none;">
             <h2>Playlists:</h2>
             <h4>For more info, click on the playlist's name</h4>
-            <% for (var i = 0; i < config.length; i++) { %>
-                <h3 class='playlistName' onclick="onClickList(this)"><%= config[i].playlistName %></h3>
-                <div class='playlistInfo' style="display:none; border: 2px solid black">
-                    <h5>Playlist:</h5>
-                    <ol>
-                        <% if (config[i].playlists.length == 2) { %>
-                            <% for (var j = 0; j < config[i].playlists.length; j++) { %>
-                                <% if (j == 0) { %>
-                                    <h6>Top Playlist:</h6>
-                                <% } else { %>
-                                    <h6>Bottoms Playlist:</h6>
+            <% if (role != 'superuser') { %> 
+                <% for (var i = 0; i < config.length; i++) { %>
+                    <h3 class='playlistName' onclick="onClickList(this)"><%= config[i].playlistName %></h3>
+                    <div class='playlistInfo' style="display:none; border: 2px solid black">
+                        <h5>Playlist:</h5>
+                        <ol>
+                            <% if (config[i].playlists.length == 2) { %>
+                                <% for (var j = 0; j < config[i].playlists.length; j++) { %>
+                                    <% if (j == 0) { %>
+                                        <h6>Top Playlist:</h6>
+                                    <% } else { %>
+                                        <h6>Bottoms Playlist:</h6>
+                                    <% }; %>
+                                    <% for (var k = 0; k < config[i].playlists[j].length; k++) { %>
+                                        
+                                        <li><%= config[i].playlists[j][k] %></li>
+                            
+                                    <% }; %>
                                 <% }; %>
-                                <% for (var k = 0; k < config[i].playlists[j].length; k++) { %>
-                                    
-                                    <li><%= config[i].playlists[j][k] %></li>
+                            <% }else{ %>
+                                <% for (var k = 0; k < config[i].playlists[0].length; k++) { %>
+                                        
+                                    <li><%= config[i].playlists[0][k] %></li>
                         
                                 <% }; %>
                             <% }; %>
-                        <% }else{ %>
-                            <% for (var k = 0; k < config[i].playlists[0].length; k++) { %>
-                                    
-                                <li><%= config[i].playlists[0][k] %></li>
-                    
-                            <% }; %>
-                        <% }; %>
-                    </ol>
-                    <h5 class='playlistScreens'>Number of Screens used: <%= config[i].screens %></h5>
-                    <h5 class='playlistOrientation'>Orientation: <%= config[i].orientation %></h5>
-                    <h5 class='playlistAspectRatio'>Aspect Ratio: <%= config[i].aspectRatio[0] %> x <%= config[i].aspectRatio[1] %></h5>
-                </div>
-            <% }; %>
+                        </ol>
+                        <h5 class='playlistScreens'>Number of Screens used: <%= config[i].screens %></h5>
+                        <h5 class='playlistOrientation'>Orientation: <%= config[i].orientation %></h5>
+                        <h5 class='playlistAspectRatio'>Aspect Ratio: <%= config[i].aspectRatio[0] %> x <%= config[i].aspectRatio[1] %></h5>
+                    </div>
+                <% }; %>
+            <% } %>
             <hr>
         </div>
 
@@ -312,7 +422,12 @@
                 <tbody id='scheduleTableBody'>
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="4"><input type='button' onclick='addEntry()' value='Add new entry'/><input type='button' onclick='removeLastTime()' value='Remove last entry'> </td></tr>
+                    <tr>
+                        <td colspan="4">
+                            <input type='button' onclick='addEntry()' value='Add new entry'/>
+                            <input type='button' onclick='removeLastTime()' value='Remove last entry'>
+                        </td>
+                    </tr>
                 </tfoot>
             </table>
 

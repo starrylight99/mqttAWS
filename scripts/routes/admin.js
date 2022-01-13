@@ -1,9 +1,10 @@
-const { express } = require('../dependancies/modules')
+const { express,bcrypt } = require('../dependancies/modules')
 const { ROLE } = require('../account/role')
 const { checkAuthenticated, authRole } = require('../account/permissions')
-const { pi,piDb } = require('../account/data')
+const { pi,piDb,users,userDb } = require('../account/data')
 const { getPiState } = require('../mqtt/eventHandler')
 const { listSchedules } = require('../s3/functions')
+const { getPiGroup } = require('../helper/functions')
 
 var router = express.Router()
 
@@ -48,33 +49,7 @@ router.route('/manageDevices')
 
 router.route('/devices')
     .get(checkAuthenticated, authRole(ROLE.SUPERUSER),async(req, res) => {
-        piGroup = []
-        for (var device of pi){
-            if (piGroup.length == 0){
-                piGroup.push({
-                    group: device.group,
-                    location: new Set([
-                        device.location
-                    ])
-                })
-            } else {
-                loop:
-                    {
-                        for (var group of piGroup){
-                            if (group.group == device.group){
-                                group.location.add(device.location)
-                                break loop
-                            }
-                        }
-                        piGroup.push({
-                            group: device.group,
-                            location: new Set([
-                                device.location
-                            ])
-                        })
-                    }
-            }
-        }
+        piGroup = getPiGroup()
         res.render('adminDevices',{
             piArray: pi, 
             piGroup: piGroup,
@@ -96,16 +71,9 @@ router.route('/devices')
                     })
                 })
                 break
-            case 'Manage': // Manage selected pi: generate/start/stop/status
-                res.redirect('/playlist/'+req.body.piId)
-                break
-            case 'Toggle': // Toggles power
-                await toggleScreenPower(req)
-                res.redirect('/admin/view')
-                break
         }
     })
-/* router.route('/users')
+router.route('/manageUsers')
     .get(checkAuthenticated, authRole(ROLE.SUPERUSER), (req, res) => {
         res.render('adminUsers', {
             userArray: users,
@@ -114,33 +82,25 @@ router.route('/devices')
         })
     })
     .post(checkAuthenticated, authRole(ROLE.SUPERUSER), (req, res) => {
+        console.log(req.body)
         switch (req.body.action){
             case 'Delete':
-                if (typeof(req.body.userId) == 'object'){
-                    for (var id of req.body.userId){
-                        users.splice(users.indexOf(users.find(user => user.id.toString() == id)),1)
-                        userDb.delete("/"+id)
-                    }
-                } else if (typeof(req.body.userId) == 'string'){
-                    users.splice(users.indexOf(users.find(user => user.id.toString() == req.body.userId)),1)
-                    userDb.delete("/"+req.body.userId)
+                for (var id of req.body.userId){
+                    users.splice(users.indexOf(users.find(user => user.id.toString() == id)),1)
+                    userDb.delete("/"+id)
                 }
-                console.log(users)
-                res.redirect('/admin/users')
-                break
-            case 'Register':
-                res.redirect('/admin/register')
+                res.send('success')
                 break
         }
     })
 router.route('/register')
-    .get(checkAuthenticated, authRole(ROLE.SUPERUSER),allowConn, (req, res) => {
+    .get(checkAuthenticated, authRole(ROLE.SUPERUSER), (req, res) => {
         res.render('adminRegister', {
             authenticated: req.isAuthenticated(),
-            previousPage: "/admin/users"
+            previousPage: "/admin/manageUsers"
         })
     })
-    .post(checkAuthenticated, authRole(ROLE.SUPERUSER),checkConn, async(req, res) => {
+    .post(checkAuthenticated, authRole(ROLE.SUPERUSER), async(req, res) => {
         console.log(req.body)
         try {
             const hashedPassword = await bcrypt.hash(req.body.password, 10)
@@ -155,9 +115,9 @@ router.route('/register')
             }
             userDb.push('/' + createUser.id, createUser , false)
             users.push(createUser)
-            res.redirect('/admin/users')
+            res.send('success')
         } catch {
-            res.redirect('/admin/register')
+            res.send('failed to create account')
         }
-    }) */
+    })
 module.exports = router

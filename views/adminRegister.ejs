@@ -1,0 +1,56 @@
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('#register').submit((event) => {
+                event.preventDefault()
+                $.post('/admin/register', {
+                    name: document.getElementById("name").value,
+                    email: document.getElementById("email").value,
+                    password: document.getElementById("password").value,
+                    role: document.getElementById("role").value,
+                    group: document.getElementById("group").value,
+                    location: document.getElementById("location").value
+                }, function(data){
+                    console.log(data)
+                    if (data == 'success') window.location.href = '/admin/manageUsers'
+                })
+            })
+        })
+    </script>
+</head>
+
+<center>
+    <h1>Register</h1>
+    <form id='register' action="/admin/register" method="POST">
+      <div>
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      <div>
+        <label for="email">Username</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+      <div>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+      <div>
+        <label for="role">Role</label>
+        <select name="role" id="role">
+          <option value="admin">Admin</option>
+          <option value="basic">Basic User</option>
+          <option value="superuser">Superuser</option>
+      </select>
+      </div>
+      <div>
+        <label for="group">Group</label>
+        <input type="group" id="group" name="group" required>
+      </div>
+      <div>
+        <label for="location">Location</label>
+        <input type="location" id="location" name="location" required>
+      </div>
+      <button type="submit">Register</button>
+    </form>
+  </center>
