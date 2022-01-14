@@ -25,6 +25,7 @@
      * Handle the screen configuration when clicked confirm
      */
     function handleScreenConfig(){
+
         var length = $('#length').val()
         if (length != 1 && document.getElementById('splitScreen').checked){
             document.getElementById('splitScreen').checked = false
@@ -53,6 +54,44 @@
         }
         $('#screenTable' + pos + ' tbody tr:last').remove();
     }
+    function resetTables(){
+        count = [1]
+        document.getElementById('screenTable0').style.display = 'none'
+        document.getElementById('screenTable1').style.display = 'none'
+        document.getElementById('topScreen').textContent = "Screen"
+        table0 = $('#screenTable0')
+        table0.empty()
+        table1 = $('#screenTable1')
+        table1.empty()
+
+        addT0 = "<thead>"
+        addT0 += "<th colspan='3' id='topScreen'>Screen</th>"
+        addT0 += "</thead>"
+        addT0 += "<tbody>"
+        addT0 += "</tbody>"
+        addT0 += "<tfoot>"
+        addT0 += "<tr><td colspan='3'>"
+        addT0 += "<input type='button' onclick='showFilenames(0)' value='Add new entry'/>"
+        addT0 += "<input type='button' onclick='removeRow(0)' value='Remove Last Entry'/>"
+        addT0 += "</td></tr>"
+        addT0 += "</tfoot>"
+
+        table0.append(addT0)
+
+        addT1 = "<thead>"
+        addT1 += "<th colspan='3' id='botScreen'>Bottom Playlist</th>"
+        addT1 += "</thead>"
+        addT1 += "<tbody>"
+        addT1 += "</tbody>"
+        addT1 += "<tfoot>"
+        addT1 += "<tr><td colspan='3'>"
+        addT1 += "<input type='button' onclick='showFilenames(1)' value='Add new entry'/>"
+        addT1 += "<input type='button' onclick='removeRow(1)' value='Remove Last Entry'/>"
+        addT1 += "</td> </tr>"
+        addT1 += "</tfoot>"
+
+        table1.append(addT1)
+    }
     $(document).ready(()=>{
         <% if (role == 'superuser') {%>
             var addGroup = '';
@@ -60,8 +99,12 @@
                 addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
             <% }); %>
             $(document.getElementById("group")).append(addGroup)
-            
-            $("#getGroup").click(function(){
+        <% } %>
+
+        $("#confirmConfig").click(function(){
+            resetTables()
+            console.log(count)
+            <% if (role == 'superuser') { %>
                 groupInput = document.getElementById("group").value
 
                 tableRadio = $('#chooseTable')
@@ -74,9 +117,13 @@
                         addMedia += "<tr><td><input type='radio' name='file'>" +data['filenames'][i] + "</td></tr>"
                     }
                     tableRadio.append(addMedia)
+                    handleScreenConfig()
                 })
-            })
-        <% } %>
+            <% } else { %>
+                handleScreenConfig()
+            <% } %>
+        })
+        
         /**
          * On submit of media choice, add it to the table. If it is an image, added another required input to get the duration to play for
          */
@@ -193,7 +240,7 @@
     <% if (role == 'superuser') { %>
         <label for="group">Group Name: </label>
         <select name="Group" id="group"></select>
-        <input type = "button" value = "Get Group" id="getGroup"><br><br>
+        <br><br>
     <% } %> 
     <form id="chooseMedia" style="display:none;position:absolute;left:50%; top:50%; transform: translate(-50%, -50%);border:3px solid black;z-index:9;background-color:gray">
         <table id='chooseTable'>   
@@ -221,7 +268,6 @@
     <hr>
     <label for='screenConfig'>Screens:</label>
     <input type="number" id='length' placeholder="Number of Screen(s)">
-    <input type="button" onclick="handleScreenConfig()" value="Confirm"> 
 
     <label for='orientation'>Orientation: </label>
     <select id='orientation'>
@@ -229,6 +275,7 @@
         <option value="portrait">Portrait</option>
     </select>
     <input type="checkbox" id="splitScreen" value=1 ><label for="splitScreen" id='splitLabel'>Split-Screen?</label>
+    <input type="button" id="confirmConfig" onclick="handleScreenConfig()" value="Confirm"> 
     <br>
     
     <hr>

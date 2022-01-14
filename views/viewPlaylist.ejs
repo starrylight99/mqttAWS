@@ -35,29 +35,96 @@
         }
     }
     $(document).ready(()=>{
-        urls = JSON.parse('<%- urls %>')
-        console.log(urls)
-        var mediaFiles = document.getElementsByClassName('mediaFiles')
-        var playlists = document.getElementsByClassName('playlistNames')
-        var delButtons = document.getElementsByClassName('delButtons')
-        for (var i = 0; i < mediaFiles.length; i++){
-            mediaFiles[i].setAttribute('onclick', 'showFile("' + mediaFiles[i].textContent +'")')
-        }
-        for (var i = 0; i < playlists.length; i++){
-            playlistNames.push(playlists[i].textContent)
-            delButtons[i].setAttribute('value', playlists[i].textContent)
-        }
+        <% if (role != 'superuser') { %>
+            urls = JSON.parse('<%- urls %>')
+            var mediaFiles = document.getElementsByClassName('mediaFiles')
+            var playlists = document.getElementsByClassName('playlistNames')
+            var delButtons = document.getElementsByClassName('delButtons')
+            for (var i = 0; i < mediaFiles.length; i++){
+                mediaFiles[i].setAttribute('onclick', 'showFile("' + mediaFiles[i].textContent +'")')
+            }
+            for (var i = 0; i < playlists.length; i++){
+                playlistNames.push(playlists[i].textContent)
+                delButtons[i].setAttribute('value', playlists[i].textContent)
+            }
+        <% } else { %>
+            var addGroup = '';
+            <% piGroup.forEach(group => { %>
+                addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
+            <% }); %>
+            $(document.getElementById("group")).append(addGroup)
+
+            $("#getGroup").click(function(){
+                groupInput = document.getElementById("group").value
+                $.post('/viewPlaylist', {
+                    group: groupInput
+                }, function(data){
+                    config = data['config'],
+                    urls = JSON.parse(data['urls'])
+
+                    playlistBody = $('#playlistBody')
+                    playlistBody.empty()
+
+                    addPlaylist = ''
+                    for (var i = 0; i < config.length; i++) {
+                        addPlaylist += "<tr>"
+                        addPlaylist += "<td><p class='playlistNames'>"+config[i].playlistName+"</p></td>"
+                        addPlaylist += "<td>"+config[i].screens+"</td>"
+                        addPlaylist += "<td>"+config[i].orientation+"</td>"
+                        addPlaylist += "<td>"+config[i].aspectRatio[0]+" x "+config[i].aspectRatio[1]+"</td>"
+                        addPlaylist += "<td>"
+                        addPlaylist += "<table border='0'>"
+                        addPlaylist += "<tbody>"
+                        for (var j = 0; j < config[i].playlists.length; j++) {
+                            config[i].playlists[j].forEach((playlist) => {
+                                addPlaylist += "<tr>"
+                                addPlaylist += "<td>"
+                                addPlaylist += "<p class='mediaFiles'>"+playlist[0]+"</p>"
+                                addPlaylist += "</td>"
+                                addPlaylist += "</tr>"
+                            })
+                        }
+                        addPlaylist += "</tbody>"
+                        addPlaylist += "</table>"
+                        addPlaylist += "</td>"
+                        addPlaylist += "<td><input type='checkbox' class='delButtons'></td>"
+                        addPlaylist += "</tr>"
+                    }
+                    playlistBody.append(addPlaylist)
+
+                    var mediaFiles = document.getElementsByClassName('mediaFiles')
+                    var playlists = document.getElementsByClassName('playlistNames')
+                    var delButtons = document.getElementsByClassName('delButtons')
+                    for (var i = 0; i < mediaFiles.length; i++){
+                        mediaFiles[i].setAttribute('onclick', 'showFile("' + mediaFiles[i].textContent +'")')
+                    }
+                    for (var i = 0; i < playlists.length; i++){
+                        playlistNames.push(playlists[i].textContent)
+                        delButtons[i].setAttribute('value', playlists[i].textContent)
+                    }
+                })
+            })
+        <% } %>
         $('#deletePlaylists').submit((event)=>{
             event.preventDefault()
             var playlistList = []
             $("input:checkbox[class=delButtons]:checked").each(function(){
                 playlistList.push($(this).val());
             })
-            $.post('/files/deletePlaylists', {
-                delPlay: playlistList,
-            }, (data)=>{
-                location.reload()
-            })
+            if (document.getElementById('group') != null) {
+                $.post('/files/deletePlaylists', {
+                    delPlay: playlistList,
+                    group: document.getElementById('group').value
+                }, (data)=>{
+                    location.reload()
+                })
+            } else {
+                $.post('/files/deletePlaylists', {
+                    delPlay: playlistList,
+                }, (data)=>{
+                    location.reload()
+                })
+            }
         })
     })  
 </script>
@@ -68,6 +135,11 @@
 <hr>
 
 <form id='deletePlaylists'>
+    <% if (role == 'superuser') { %>
+        <label for="group">Group Name: </label>
+        <select name="Group" id="group"></select>
+        <input type = "button" value = "Get Group" id="getGroup"><br><br>
+    <% } %>
     <table border='1'>
         <thead>
             <th>Playlist Name</th>
@@ -77,32 +149,34 @@
             <th>Click to preview file</th>
             <th>Delete</th>
         </thead>
-        <tbody>
-            <% for (var i = 0; i < config.length; i++) { %>
-                <tr>
-                    <td><p class='playlistNames'><%= config[i].playlistName %></p></td>
-                    <td><%= config[i].screens %></td>
-                    <td><%= config[i].orientation %></td>
-                    <td><%= config[i].aspectRatio[0] %> x <%= config[i].aspectRatio[1] %></td>
-                    <td>
-                        <table border='0'>
-                            <tbody>
-                                <% for (var j = 0; j < config[i].playlists.length; j++) { %>
-                                    <% config[i].playlists[j].forEach((playlist) => { %>
-                                        <% console.log(playlist) %>
-                                        <tr>
-                                            <td>
-                                                <p class='mediaFiles'><%= playlist[0] %></p>
-                                            </td>
-                                        </tr>
-                                    <% }) %>
-                                <% } %>
-                            </tbody>
-                        </table>
-                    </td>
-                    <td><input type='checkbox' class='delButtons'></td>
-                </tr>
-            <% }; %>
+        <tbody id='playlistBody'>
+            <% if (role != 'superuser') { %>
+                <% for (var i = 0; i < config.length; i++) { %>
+                    <tr>
+                        <td><p class='playlistNames'><%= config[i].playlistName %></p></td>
+                        <td><%= config[i].screens %></td>
+                        <td><%= config[i].orientation %></td>
+                        <td><%= config[i].aspectRatio[0] %> x <%= config[i].aspectRatio[1] %></td>
+                        <td>
+                            <table border='0'>
+                                <tbody>
+                                    <% for (var j = 0; j < config[i].playlists.length; j++) { %>
+                                        <% config[i].playlists[j].forEach((playlist) => { %>
+                                            <% console.log(playlist) %>
+                                            <tr>
+                                                <td>
+                                                    <p class='mediaFiles'><%= playlist[0] %></p>
+                                                </td>
+                                            </tr>
+                                        <% }) %>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </td>
+                        <td><input type='checkbox' class='delButtons'></td>
+                    </tr>
+                <% }; %>
+            <% } %>
         </tbody>
         <tfoot>
             <tr>

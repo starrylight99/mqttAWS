@@ -334,15 +334,28 @@
                 alert("Playlist name cannot end with space")
                 return
             }
-            $.post('/files/createSchedule', {
-                orientation: orientation,
-                totalScreens: totalScreens,
-                scheduleName: scheduleName,
-                schedule: schedule,
-                uniquePlaylist: uniquePlaylist,
-            }, (data) => {
-                location.reload()
-            })
+            if (document.getElementById('group') != null){
+                $.post('/files/createSchedule', {
+                    orientation: orientation,
+                    totalScreens: totalScreens,
+                    scheduleName: scheduleName,
+                    schedule: schedule,
+                    uniquePlaylist: uniquePlaylist,
+                    group: document.getElementById('group').value
+                }, (data) => {
+                    location.reload()
+                })
+            } else {
+                $.post('/files/createSchedule', {
+                    orientation: orientation,
+                    totalScreens: totalScreens,
+                    scheduleName: scheduleName,
+                    schedule: schedule,
+                    uniquePlaylist: uniquePlaylist,
+                }, (data) => {
+                    location.reload()
+                })
+            }
         })
     })
 </script>

@@ -40,7 +40,11 @@ router.route('/deletePlaylists')
     .post(checkAuthenticated, async(req, res, next) => {
         console.log(req.body)
         var delPlay = req.body.delPlay
-        deleteFolders(delPlay, req.user.group, false)
+        if (req.body.group != undefined) {
+            deleteFolders(delPlay, req.body.group, false)
+        } else {
+            deleteFolders(delPlay, req.user.group, false)
+        }
         await new Promise(resolve => setTimeout(resolve, 1000))
         res.send('success')
     })
@@ -48,7 +52,11 @@ router.route('/deletePlaylists')
 router.route('/deleteSchedules')
     .post(checkAuthenticated, async(req, res, next) => {
         var delSched = req.body.delSched
-        deleteFolders(delSched, req.user.group, true)
+        if (req.body.group != undefined) {
+            deleteFolders(delSched, req.body.group, true)
+        } else {
+            deleteFolders(delSched, req.user.group, true)
+        }
         await new Promise(resolve => setTimeout(resolve, 1000))
         res.send('success')
     })
@@ -147,7 +155,11 @@ router.route('/createSchedule')
             "totalScreens": req.body.totalScreens,
             "orientation": req.body.orientation,
         }
-        uploadSchedule(schedule, req.user.group)
+        if (req.body.group != undefined) {
+            uploadSchedule(schedule, req.body.group)
+        } else {
+            uploadSchedule(schedule, req.user.group)
+        }
         res.send('success')
     })
 module.exports = router

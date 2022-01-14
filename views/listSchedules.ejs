@@ -1,31 +1,89 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
     function showSchedule(schedule){
-        console.log(schedule)
-        $.post('/viewSchedule', {
-            schedule: schedule
-        }, (data)=>{
-            window.location.replace("/viewSchedule/" + schedule)
-        })
+        if (document.getElementById('group') != null) {
+            $.post('/viewSchedule', {
+                schedule: schedule,
+                group: document.getElementById('group').value
+            }, (data)=>{
+                window.location.replace("/viewSchedule/" + document.getElementById('group').value + "/"+ schedule)
+            })
+        } else {
+            $.post('/viewSchedule', {
+                schedule: schedule
+            }, (data)=>{
+                console.log(data)
+                window.location.replace("/viewSchedule/" + data['group'] + "/" +schedule)
+            })
+        }
     }
     $(document).ready(()=>{
-        var schedules = document.getElementsByClassName('schedules')
-        var delButtons = document.getElementsByClassName('delButtons')
-        for (var i = 0; i < schedules.length; i++){
-            delButtons[i].setAttribute('value', schedules[i].textContent)
-            schedules[i].setAttribute('onclick', 'showSchedule("' + schedules[i].textContent + '")')
-        }
+        <% if (role != 'superuser') { %>
+            var schedules = document.getElementsByClassName('schedules')
+            var delButtons = document.getElementsByClassName('delButtons')
+            for (var i = 0; i < schedules.length; i++){
+                delButtons[i].setAttribute('value', schedules[i].textContent)
+                schedules[i].setAttribute('onclick', 'showSchedule("' + schedules[i].textContent + '")')
+            }
+        <% } else { %>
+            var addGroup = '';
+            <% piGroup.forEach(group => { %>
+                addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
+            <% }); %>
+            $(document.getElementById("group")).append(addGroup)
+
+            $("#getGroup").click(function(){
+                groupInput = document.getElementById("group").value
+                $.post('/listSchedules', {
+                    group: groupInput
+                }, function(data){
+                    schedules = data['schedules']
+                    console.log(schedules)
+
+                    scheduleBody = $('#scheduleBody')
+                    scheduleBody.empty()
+
+                    addSchedule = ''
+                    for (var i = 0; i < schedules.length; i++) {
+                        addSchedule += "<tr>"
+                        addSchedule += "<td>"
+                        addSchedule += "<p class='schedules'>"+schedules[i]+"</p>"
+                        addSchedule += "</td><td>"
+                        addSchedule += "<input type='checkbox' class='delButtons'>"
+                        addSchedule += "</td>"
+                        addSchedule += "</tr>"
+                    }
+                    scheduleBody.append(addSchedule)
+                    var schedules = document.getElementsByClassName('schedules')
+                    var delButtons = document.getElementsByClassName('delButtons')
+                    for (var i = 0; i < schedules.length; i++){
+                        delButtons[i].setAttribute('value', schedules[i].textContent)
+                        schedules[i].setAttribute('onclick', 'showSchedule("' + schedules[i].textContent + '")')
+                    }
+                })
+            })
+        <% } %>
+
         $('#deleteSchedules').submit((event)=>{
             event.preventDefault()
             var scheduleList = []
             $("input:checkbox[class=delButtons]:checked").each(function(){
                 scheduleList.push($(this).val());
             })
-            $.post('/files/deleteSchedules', {
-                delSched: scheduleList,
-            }, (data)=>{
-                location.reload()
-            })
+            if (document.getElementById('group') != null) {
+                $.post('/files/deleteSchedules', {
+                    group: document.getElementById('group').value,
+                    delSched: scheduleList,
+                }, (data)=>{
+                    location.reload()
+                })
+            } else {
+                $.post('/files/deleteSchedules', {
+                    delSched: scheduleList,
+                }, (data)=>{
+                    location.reload()
+                })
+            }
         })
     })  
 </script>
@@ -34,6 +92,11 @@
 <h1>Schedules</h1>
 <hr>
 <form id="deleteSchedules">
+    <% if (role == 'superuser') { %>
+        <label for="group">Group Name: </label>
+        <select name="Group" id="group"></select>
+        <input type = "button" value = "Get Group" id="getGroup"><br><br>
+    <% } %>
     <table border='1'>
         <thead>
             <th >
@@ -43,17 +106,19 @@
                 Delete
             </th>
         </thead>
-        <tbody>
-            <% for (var i = 0; i < schedules.length; i++) { %>
-                <tr>
-                    <td>
-                        <p class='schedules'><%= schedules[i] %></p>
-                    </td>
-                    <td>
-                        <input type='checkbox' class='delButtons'> 
-                    </td>
-                </tr>
-            <% }; %>
+        <tbody id='scheduleBody'>
+            <% if (role != 'superuser') { %>
+                <% for (var i = 0; i < schedules.length; i++) { %>
+                    <tr>
+                        <td>
+                            <p class='schedules'><%= schedules[i] %></p>
+                        </td>
+                        <td>
+                            <input type='checkbox' class='delButtons'> 
+                        </td>
+                    </tr>
+                <% }; %>
+            <% } %>
         </tbody>
         <tfoot>
             <tr>

@@ -44,26 +44,75 @@
         })
     }
     $(document).ready(()=>{
-        urls = '<%- url %>'.split(',')
-        filenames = '<%- filenames %>'.split(',')
-        var mediaFiles = document.getElementsByClassName('mediaFiles')
-        var delButtons = document.getElementsByClassName('delButtons')
-        for (var i = 0; i < mediaFiles.length; i++){
-            mediaFiles[i].setAttribute('onclick', 'showFile(' + i +')')
-            delButtons[i].setAttribute('value', mediaFiles[i].textContent)
-        }
+        <% if (role != 'superuser') { %>
+            urls = '<%- url %>'.split(',')
+            filenames = '<%- filenames %>'.split(',')
+            var mediaFiles = document.getElementsByClassName('mediaFiles')
+            var delButtons = document.getElementsByClassName('delButtons')
+            for (var i = 0; i < mediaFiles.length; i++){
+                mediaFiles[i].setAttribute('onclick', 'showFile(' + i +')')
+                delButtons[i].setAttribute('value', mediaFiles[i].textContent)
+            }
+        <% } else { %>
+            var addGroup = '';
+            <% piGroup.forEach(group => { %>
+                addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
+            <% }); %>
+            $(document.getElementById("group")).append(addGroup)
+
+            $("#getGroup").click(function(){
+                groupInput = document.getElementById("group").value
+                $.post('/media', {
+                    group: groupInput
+                }, function(data){
+                    filenames = data['filenames']
+                    urls = data['url']
+
+                    mediaBody = $('#mediaBody')
+                    mediaBody.empty()
+
+                    addMedia = ""
+                    for (var i = 0; i < filenames.length; i++) {
+                        addMedia += "<tr>"
+                        addMedia += "<td>"
+                        addMedia += "<p class='mediaFiles'>"+filenames[i]+"</p>"
+                        addMedia += "</td>"
+                        addMedia += "<td>"
+                        addMedia += "<input type='checkbox' class='delButtons'>"
+                        addMedia += "</td>"
+                        addMedia += "</tr>"
+                    }
+                    mediaBody.append(addMedia)
+
+                    var mediaFiles = document.getElementsByClassName('mediaFiles')
+                    var delButtons = document.getElementsByClassName('delButtons')
+                    for (var i = 0; i < mediaFiles.length; i++){
+                        mediaFiles[i].setAttribute('onclick', 'showFile(' + i +')')
+                        delButtons[i].setAttribute('value', mediaFiles[i].textContent)
+                    }
+                })
+            })
+        <% } %>
         $('#deleteMedia').submit((event)=>{
             event.preventDefault()
             var mediaList = []
             $("input:checkbox[class=delButtons]:checked").each(function(){
                 mediaList.push($(this).val());
             })
-            console.log(mediaList)
-            $.post('/files/deleteFiles', {
-                delMedia: mediaList,
-            }, (data)=>{
-                location.reload()
-            })
+            if (document.getElementById('group') != null) {
+                $.post('/files/deleteFiles', {
+                    delMedia: mediaList,
+                    group: document.getElementById('group').value
+                }, (data)=>{
+                    location.reload()
+                })
+            } else {
+                $.post('/files/deleteFiles', {
+                    delMedia: mediaList,
+                }, (data)=>{
+                    location.reload()
+                })
+            }
         })
     })  
 </script>
@@ -73,6 +122,11 @@
 <h1>Media</h1>
 <hr>
 <form id='deleteMedia'>
+    <% if (role == 'superuser') { %>
+        <label for="group">Group Name: </label>
+        <select name="Group" id="group"></select>
+        <input type = "button" value = "Get Group" id="getGroup"><br><br>
+    <% } %>
     <table border='1'>
         <thead>
             <th>
@@ -82,17 +136,19 @@
                 Delete
             </th>
         </thead>
-        <tbody>
-            <% for (var i = 0; i < filenames.length; i++) { %>
-                <tr>
-                    <td>
-                        <p class='mediaFiles'><%= filenames[i] %></p>
-                    </td>
-                    <td>
-                        <input type='checkbox' class='delButtons'>
-                    </td>
-                </tr>
-            <% }; %>
+        <tbody id='mediaBody'>
+            <% if (role != 'superuser') { %>}
+                <% for (var i = 0; i < filenames.length; i++) { %>
+                    <tr>
+                        <td>
+                            <p class='mediaFiles'><%= filenames[i] %></p>
+                        </td>
+                        <td>
+                            <input type='checkbox' class='delButtons'>
+                        </td>
+                    </tr>
+                <% }; %>
+            <% } %>
         </tbody>
         <tfoot>
             <tr>
