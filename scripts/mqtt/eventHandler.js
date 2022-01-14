@@ -54,9 +54,11 @@ function resetTemp(){
 }
 
 async function getPiState(){
-    piState.forEach((pie,id) => {
-        pie.online = false
-        pie.schedules = []
+    pi.forEach(pie => {
+        piState.set(pie.id, {
+            online: false,
+            schedules: []
+        })
     })
     schedules = []
     client.subscribe('webApp', (err)=> {

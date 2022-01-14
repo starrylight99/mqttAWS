@@ -158,6 +158,7 @@
                 addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
             <% }); %>
             $(document.getElementById("group")).append(addGroup)
+            var groupInput;
         <% } %>
         
         function resetSchedule(){
@@ -341,7 +342,7 @@
                     scheduleName: scheduleName,
                     schedule: schedule,
                     uniquePlaylist: uniquePlaylist,
-                    group: document.getElementById('group').value
+                    group: groupInput
                 }, (data) => {
                     location.reload()
                 })

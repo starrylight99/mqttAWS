@@ -36,6 +36,7 @@
     }
     $(document).ready(()=>{
         <% if (role != 'superuser') { %>
+            var groupInput;
             urls = JSON.parse('<%- urls %>')
             var mediaFiles = document.getElementsByClassName('mediaFiles')
             var playlists = document.getElementsByClassName('playlistNames')
@@ -114,7 +115,7 @@
             if (document.getElementById('group') != null) {
                 $.post('/files/deletePlaylists', {
                     delPlay: playlistList,
-                    group: document.getElementById('group').value
+                    group: groupInput
                 }, (data)=>{
                     location.reload()
                 })

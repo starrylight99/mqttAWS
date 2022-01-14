@@ -27,10 +27,15 @@ router.route('/upload')
         }
         res.send('success')
     })
-
+    
 router.route('/deleteFiles')
     .post(checkAuthenticated, async(req, res, next) => {
         var delMedia = req.body.delMedia
+        if (req.body.group != undefined) {
+            deleteFiles(delMedia, req.body.group)
+        } else {
+            deleteFiles(delMedia, req.user.group)
+        }
         deleteFiles(delMedia, req.user.group)
         await new Promise(resolve => setTimeout(resolve, 1000))
         res.send('success')

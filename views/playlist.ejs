@@ -99,6 +99,7 @@
                 addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
             <% }); %>
             $(document.getElementById("group")).append(addGroup)
+            var groupInput;
         <% } %>
 
         $("#confirmConfig").click(function(){
@@ -211,7 +212,7 @@
                     playlistName: playlistName,
                     aspectRatio: aspectRatio,
                     splitScreen: twoTables,
-                    group: document.getElementById('group').value
+                    group: groupInput
                 }, function(data){
                     location.reload()
                 })

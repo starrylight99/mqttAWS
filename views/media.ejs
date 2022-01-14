@@ -54,6 +54,7 @@
                 delButtons[i].setAttribute('value', mediaFiles[i].textContent)
             }
         <% } else { %>
+            var groupInput;
             var addGroup = '';
             <% piGroup.forEach(group => { %>
                 addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
@@ -102,7 +103,7 @@
             if (document.getElementById('group') != null) {
                 $.post('/files/deleteFiles', {
                     delMedia: mediaList,
-                    group: document.getElementById('group').value
+                    group: groupInput
                 }, (data)=>{
                     location.reload()
                 })
@@ -137,7 +138,7 @@
             </th>
         </thead>
         <tbody id='mediaBody'>
-            <% if (role != 'superuser') { %>}
+            <% if (role != 'superuser') { %>
                 <% for (var i = 0; i < filenames.length; i++) { %>
                     <tr>
                         <td>

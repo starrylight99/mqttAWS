@@ -26,6 +26,7 @@
                 schedules[i].setAttribute('onclick', 'showSchedule("' + schedules[i].textContent + '")')
             }
         <% } else { %>
+            var groupInput;
             var addGroup = '';
             <% piGroup.forEach(group => { %>
                 addGroup += "<option value='" + "<%= group.group %>" + "'>" + "<%= group.group %>" +"</option>"
@@ -72,7 +73,7 @@
             })
             if (document.getElementById('group') != null) {
                 $.post('/files/deleteSchedules', {
-                    group: document.getElementById('group').value,
+                    group: groupInput,
                     delSched: scheduleList,
                 }, (data)=>{
                     location.reload()
