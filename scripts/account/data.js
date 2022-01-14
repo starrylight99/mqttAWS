@@ -2,8 +2,8 @@ const JsonDB = require('node-json-db').JsonDB;
 const Config = require('node-json-db/dist/lib/JsonDBConfig').Config;
 const { bcrypt } = require('../dependancies/modules')
 
-var piDb = new JsonDB(new Config("pi", true, false, '/'))
-var userDb = new JsonDB(new Config("user", true, false, '/'))
+var piDb = new JsonDB(new Config("pi", true, true, '/'))
+var userDb = new JsonDB(new Config("user", true, true, '/'))
 
 var piData = piDb.getData('/'); var pi = []
 var userData = userDb.getData('/'); var users = []
