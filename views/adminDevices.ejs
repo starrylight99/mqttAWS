@@ -134,6 +134,34 @@
                 }
             })
             $(locationTable).append(addPi)
+            var idRows = document.getElementsByClassName('idRows')
+            var count = 0
+            piState.forEach((pie,i) => {
+                if (pie.online == true) {
+                    var td = idRows[i].getElementsByTagName('td')
+                    td[0].setAttribute('id', 'id_' + i)
+                    var scheduleRows = idRows[i].getElementsByClassName('schedule')
+                    var delButtons = idRows[i].getElementsByClassName('delButton')
+                    var runButtons = idRows[i].getElementsByClassName('runButton')
+                    var stopButtons = idRows[i].getElementsByClassName('stopButton')
+                    
+                    idRows[i].getElementsByTagName('select')[0].setAttribute('id', 'scheduleOptions_' + i)
+                    idRows[i].getElementsByClassName('sendButton')[0].setAttribute('id', 'sendButton_' + i)
+
+                    var choices = idRows[i].getElementsByClassName('scheduleChoices')
+                    for (var j = 0; j < choices.length; j++){
+                        choices[j].setAttribute('value', choices[j].textContent)
+                    }
+                    for (var j = 0; j < scheduleRows.length; j++){
+                        var td = scheduleRows[j].getElementsByTagName('td')
+                        td[0].setAttribute('id', 'filename_' + i + '_' + j)
+                        delButtons[j].setAttribute('id', 'button_' + i + '_' + j)
+                        runButtons[j].setAttribute('id', 'runButton_' + i + '_' + j)
+                        stopButtons[j].setAttribute('id', 'stopButton_' + i + '_' + j)
+                    }
+                }
+                count++
+            })
         });
     });
 </script>
