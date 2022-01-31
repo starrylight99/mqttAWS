@@ -138,17 +138,17 @@
             var count = 0
             piState.forEach((pie,i) => {
                 if (pie.online == true) {
-                    var td = idRows[i].getElementsByTagName('td')
+                    var td = idRows[count].getElementsByTagName('td')
                     td[0].setAttribute('id', 'id_' + i)
-                    var scheduleRows = idRows[i].getElementsByClassName('schedule')
-                    var delButtons = idRows[i].getElementsByClassName('delButton')
-                    var runButtons = idRows[i].getElementsByClassName('runButton')
-                    var stopButtons = idRows[i].getElementsByClassName('stopButton')
+                    var scheduleRows = idRows[count].getElementsByClassName('schedule')
+                    var delButtons = idRows[count].getElementsByClassName('delButton')
+                    var runButtons = idRows[count].getElementsByClassName('runButton')
+                    var stopButtons = idRows[count].getElementsByClassName('stopButton')
                     
-                    idRows[i].getElementsByTagName('select')[0].setAttribute('id', 'scheduleOptions_' + i)
-                    idRows[i].getElementsByClassName('sendButton')[0].setAttribute('id', 'sendButton_' + i)
+                    idRows[count].getElementsByTagName('select')[0].setAttribute('id', 'scheduleOptions_' + i)
+                    idRows[count].getElementsByClassName('sendButton')[0].setAttribute('id', 'sendButton_' + i)
 
-                    var choices = idRows[i].getElementsByClassName('scheduleChoices')
+                    var choices = idRows[count].getElementsByClassName('scheduleChoices')
                     for (var j = 0; j < choices.length; j++){
                         choices[j].setAttribute('value', choices[j].textContent)
                     }
