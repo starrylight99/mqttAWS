@@ -24,8 +24,8 @@ var messageHandler = (topic, message) => {
         temperature = message
     } else if (message.split(' ')[0] == 'online') {
         var split_msg = message.split(' ')
+        schedules = []
         if (split_msg[2] != 'nil'){
-            schedules = []
             playlistName = split_msg[2]
             if (split_msg.length > 2) {
                 for (var i = 3; i < split_msg.length; i++){
