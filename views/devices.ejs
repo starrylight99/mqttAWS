@@ -34,9 +34,9 @@
     $(document).ready(()=>{
         var idRows = document.getElementsByClassName('idRows')
         var count = 0
-        <% piState.forEach((pie,i) => { %>
-            <% if (pie.online == true) { %>
-                var i = <%= i %>
+        <% piArray.forEach(pi => { %>
+            <% if (pi.location == user.location) { %>
+                var i = <%= pi.id %>
                 var td = idRows[count].getElementsByTagName('td')
                 td[0].setAttribute('id', 'id_' + i)
                 var scheduleRows = idRows[count].getElementsByClassName('schedule')
@@ -58,8 +58,8 @@
                     runButtons[j].setAttribute('id', 'runButton_' + i + '_' + j)
                     stopButtons[j].setAttribute('id', 'stopButton_' + i + '_' + j)
                 }
+                count++
             <% } %>
-            count++
         <% }) %>
     })  
 </script>

@@ -108,9 +108,9 @@
                         addPi += "<tr class='schedule'>"
                         addPi += "<td>"+piState.get(pi.id).schedules[i]+"</td>"
                         addPi += "<td>"
-                        addPi += "<input type='button' class='runButton' onclick='updateSchedule(this, 'run')' value='Run'>"
-                        addPi += "<input type='button' class='stopButton' onclick='updateSchedule(this, 'stop')' value='Stop'>"
-                        addPi += "<input type='button' class='delButton' onclick='updateSchedule(this, 'delete')' value='Delete'"
+                        addPi += "<input type='button' class='runButton' onclick='updateSchedule(this, " + '"run"'+ ")' value='Run'>"
+                        addPi += "<input type='button' class='stopButton' onclick='updateSchedule(this, " + '"stop"' + ")' value='Stop'>"
+                        addPi += "<input type='button' class='delButton' onclick='updateSchedule(this, " + '"delete"' + ")' value='Delete'>"
                         addPi += "</td>"
                         addPi += "</tr>"
                     }
@@ -136,8 +136,9 @@
             $(locationTable).append(addPi)
             var idRows = document.getElementsByClassName('idRows')
             var count = 0
-            piState.forEach((pie,i) => {
-                if (pie.online == true) {
+            piArray.forEach(pi => {
+                if (locationInput == pi.location) {
+                    var i = pi.id
                     var td = idRows[count].getElementsByTagName('td')
                     td[0].setAttribute('id', 'id_' + i)
                     var scheduleRows = idRows[count].getElementsByClassName('schedule')
@@ -159,8 +160,8 @@
                         runButtons[j].setAttribute('id', 'runButton_' + i + '_' + j)
                         stopButtons[j].setAttribute('id', 'stopButton_' + i + '_' + j)
                     }
+                    count++
                 }
-                count++
             })
         });
     });
